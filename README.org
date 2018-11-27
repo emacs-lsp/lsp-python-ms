@@ -1,0 +1,28 @@
+lsp-mode client leveraging microsoft's [[https://github.com/Microsoft/python-language-server][python-language-server]]
+
+* Installation
+
+1. Install [[https://www.microsoft.com/net/download][dotnet-sdk]]
+2. Clone and install [[https://github.com/Microsoft/python-language-server][python-language-server]]:
+   #+BEGIN_SRC bash
+   git clone https://github.com/Microsoft/python-language-server.git
+   cd python-language-server/src/LanguageServer/Impl
+   dotnet build -c Release
+   #+END_SRC
+
+Include ~lsp-python-ms~ in your config in your preferred manner. A
+minimal ~use-package~ initialization might be:
+
+#+BEGIN_SRC elisp
+  (use-package lsp-python-ms
+    :ensure nil
+    :hook (python-mode . lsp-python-enable)
+    :config
+    (setq lsp-python-ms-dir
+          (expand-file-name "~/python-language-server/output/bin/Release/")))
+#+END_SRC
+
+* Credit
+
+All credit to [[https://cpbotha.net][cpbotha]] on [[https://vxlabs.com/2018/11/19/configuring-emacs-lsp-mode-and-microsofts-visual-studio-code-python-language-server/][vxlabs]]!  This just tidies and packages his
+work there
