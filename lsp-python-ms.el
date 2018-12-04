@@ -103,6 +103,11 @@ search paths."
 (advice-add 'lsp-ui-doc--extract
             :filter-return #'lsp-python-ms--filter-nbsp)
 
+;; lsp-ui-sideline--format-info gets called when lsp-ui wants to show hover info in the sideline
+;; again &nbsp; has to be removed
+(advice-add 'lsp-ui-sideline--format-info
+            :filter-return #'lsp-python-ms--filter-nbsp)
+
 (lsp-define-stdio-client
  lsp-python "python"
  #'lsp-python-ms--workspace-root
