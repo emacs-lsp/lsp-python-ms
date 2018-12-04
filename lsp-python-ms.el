@@ -75,9 +75,11 @@ search paths."
       :searchPaths ,(json-read-from-string pysyspath))))
 
 (defun lsp-python-ms--workspace-root ()
-  "Get the root, or just return `default-directory'."
-  (let ((proj (projectile-project-root)))
-    (if proj proj default-directory)))
+  "Get the root using ffip or projectile, or just return `default-directory'."
+  (cond
+   ((fboundp 'ffip-get-project-root-directory) (ffip-get-project-root-directory))
+   ((fboundp 'projectile-project-root)) (projectile-project-root)
+   (t default-directory)))
 
 (defun lsp-python-ms--find-dotnet ()
   "Get the path to dotnet, or return `lsp-python-ms-dotnet'."
