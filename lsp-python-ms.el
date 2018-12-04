@@ -74,19 +74,30 @@ search paths."
                        :maxDocumentationTextLength 0)
       :searchPaths ,(json-read-from-string pysyspath))))
 
+(defun lsp-python-ms--client-initialized (client)
+  "Callback for client initialized."
+  (lsp-client-on-notification client "python/languageServerStarted" 'lsp-python-ms--language-server-started))
+
+(defun lsp-python-ms--language-server-started (workspace params)
+  "Callback for server started initialized."
+  (message "[MS Python language server started]"))
+
 (defun lsp-python-ms--workspace-root ()
   "Get the root, or just return `default-directory'."
-  (let ((proj (projectile-project-root)))
+  (let ((proj (if (fboundp 'projectile-project-root) (projectile-project-root) nil)))
     (if proj proj default-directory)))
 
 (defun lsp-python-ms--find-dotnet ()
   "Get the path to dotnet, or return `lsp-python-ms-dotnet'."
-  (let ((dotnet (executable-find "dotnet")))
+  (let ((dotnet (if (eq system-type 'windows-nt) "dotnet" (executable-find "dotnet"))))
     (if dotnet dotnet lsp-python-ms-dotnet)))
 
 (defun lsp-python-ms--filter-nbsp (str)
   "Filter nbsp entities from STR."
-  (replace-regexp-in-string "&nbsp;" " " str))
+  (let ((rx "&nbsp;"))
+    (when (eq system-type 'windows-nt)
+      (setq rx (concat rx "\\|\r")))
+    (replace-regexp-in-string rx " " str)))
 
 (setq lsp-render-markdown-markup-content #'lsp-python-ms--filter-nbsp)
 (advice-add 'lsp-ui-doc--extract
@@ -96,9 +107,10 @@ search paths."
  lsp-python "python"
  #'lsp-python-ms--workspace-root
  `(,(lsp-python-ms--find-dotnet) ,(concat lsp-python-ms-dir "Microsoft.Python.LanguageServer.dll"))
- :extra-init-params #'lsp-python-ms--extra-init-params)
+ :extra-init-params #'lsp-python-ms--extra-init-params
+ :initialize #'lsp-python-ms--client-initialized)
 
 
 (provide 'lsp-python-ms)
 
-;;; lsp-python.el ends here
+;;; lsp-python-ms.el ends here
