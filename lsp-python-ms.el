@@ -29,20 +29,23 @@
 ;; from https://vxlabs.com/2018/11/19/configuring-emacs-lsp-mode-and-microsofts-visual-studio-code-python-language-server/
 
 ;;; Code:
+(require 'cl)
 
 (defvar lsp-python-ms-dir nil
-  "Path to langeuage server directory containing
-Microsoft.Python.LanguageServer.dll")
+  "Path to langeuage server directory containing Microsoft.Python.LanguageServer.dll")
 
 (defvar lsp-python-ms-dotnet nil
   "Path to dotnet executable.")
+
+(defvar lsp-python-ms-executable nil
+  "Path to Microsoft.Python.LanguageServer.exe")
 
 ;; it's crucial that we send the correct Python version to MS PYLS,
 ;; else it returns no docs in many cases furthermore, we send the
 ;; current Python's (can be virtualenv) sys.path as searchPaths
 
 (defun lsp-python-ms--get-python-ver-and-syspath (workspace-root)
-  "return list with pyver-string and json-encoded list of python
+  "Return list with pyver-string and json-encoded list of python
 search paths."
   (let ((python (executable-find python-shell-interpreter))
         (init "from __future__ import print_function; import sys; import json;")
@@ -55,24 +58,23 @@ search paths."
 ;; I based most of this on the vs.code implementation:
 ;; https://github.com/Microsoft/vscode-python/blob/master/src/client/activation/languageServer/languageServer.ts#L219
 ;; (it still took quite a while to get right, but here we are!)
-(defun lsp-python-ms--extra-init-params (workspace)
-  (destructuring-bind (pyver pysyspath)
-      (lsp-python-ms--get-python-ver-and-syspath (lsp--workspace-root workspace))
-    `(:interpreter
-      (:properties (
-                    :InterpreterPath ,(executable-find python-shell-interpreter)
-                    ;; this database dir will be created if required
-                    :DatabasePath ,(expand-file-name (concat lsp-python-ms-dir "db/"))
-                    :Version ,pyver))
-      ;; preferredFormat "markdown" or "plaintext"
-      ;; experiment to find what works best -- over here mostly plaintext
-      :displayOptions (
-                       :preferredFormat "plaintext"
-                       :trimDocumentationLines :json-false
-                       :maxDocumentationLineLength 0
-                       :trimDocumentationText :json-false
-                       :maxDocumentationTextLength 0)
-      :searchPaths ,(json-read-from-string pysyspath))))
+(defun lsp-python-ms--extra-init-params (&optional workspace)
+  (let ((workspace-root (if workspace (lsp--workspace-root workspace) (pwd))))
+    (destructuring-bind (pyver pysyspath)
+      (lsp-python-ms--get-python-ver-and-syspath workspace-root)
+      `(:interpreter
+        (:properties (:InterpreterPath ,(executable-find python-shell-interpreter)
+                      ;; this database dir will be created if required
+                      :DatabasePath ,(expand-file-name (concat lsp-python-ms-dir "db/"))
+                      :Version ,pyver))
+        ;; preferredFormat "markdown" or "plaintext"
+        ;; experiment to find what works best -- over here mostly plaintext
+        :displayOptions (:preferredFormat "plaintext"
+                         :trimDocumentationLines :json-false
+                         :maxDocumentationLineLength 0
+                         :trimDocumentationText :json-false
+                         :maxDocumentationTextLength 0)
+        :searchPaths ,(json-read-from-string pysyspath)))))
 
 (defun lsp-python-ms--client-initialized (client)
   "Callback for client initialized."
@@ -100,16 +102,35 @@ search paths."
     (replace-regexp-in-string rx " " str)))
 
 (setq lsp-render-markdown-markup-content #'lsp-python-ms--filter-nbsp)
-(advice-add 'lsp-ui-doc--extract
-            :filter-return #'lsp-python-ms--filter-nbsp)
+(advice-add 'lsp-ui-doc--extract :filter-return #'lsp-python-ms--filter-nbsp)
 
-(lsp-define-stdio-client
- lsp-python "python"
- #'lsp-python-ms--workspace-root
- `(,(lsp-python-ms--find-dotnet) ,(concat lsp-python-ms-dir "Microsoft.Python.LanguageServer.dll"))
- :extra-init-params #'lsp-python-ms--extra-init-params
- :initialize #'lsp-python-ms--client-initialized)
+(defun lsp-python-ms--command-string ()
+  "Return the command that starts the server."
+  (if lsp-python-ms-executable
+      lsp-python-ms-executable
+    (list (lsp-python-ms--find-dotnet)
+          (concat lsp-python-ms-dir "Microsoft.Python.LanguageServer.dll"))))
 
+;;; Old lsp-mode
+(unless (fboundp 'lsp-register-client)
+  (lsp-define-stdio-client
+   lsp-python "python"
+   #'lsp-python-ms--workspace-root
+   nil
+   :command-fn 'lsp-python-ms--command-string
+   :extra-init-params #'lsp-python-ms--extra-init-params
+   :initialize #'lsp-python-ms--client-initialized))
+
+;;; New lsp-mode
+(when (fboundp 'lsp-register-client)
+  (lsp-register-client
+   (make-lsp-client
+    :new-connection (lsp-stdio-connection 'lsp-python-ms--command-string)
+    :major-modes '(python-mode)
+    :server-id 'mspyls
+    :initialization-options 'lsp-python-ms--extra-init-params
+    :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started))
+    )))
 
 (provide 'lsp-python-ms)
 
