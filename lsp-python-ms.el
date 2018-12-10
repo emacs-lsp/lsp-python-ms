@@ -37,7 +37,11 @@
 (defvar lsp-python-ms-dotnet nil
   "Full path to dotnet executable. You only need to set this if dotnet is not on your path.")
 
-(defvar lsp-python-ms-executable nil
+(defvar lsp-python-ms-executable
+  (cond
+   ((executable-find "Microsoft.Python.LanguageServer"))
+   ((executable-find "Microsoft.Python.LanguageServer.exe"))
+   (t nil))
   "Path to Microsoft.Python.LanguageServer.exe")
 
 ;; it's crucial that we send the correct Python version to MS PYLS,
