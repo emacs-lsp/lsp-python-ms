@@ -35,7 +35,7 @@
 Microsoft.Python.LanguageServer.dll")
 
 (defvar lsp-python-ms-dotnet nil
-  "Path to dotnet executable.")
+  "Full path to dotnet executable. You only need to set this if dotnet is not on your path.")
 
 ;; it's crucial that we send the correct Python version to MS PYLS,
 ;; else it returns no docs in many cases furthermore, we send the
@@ -75,9 +75,11 @@ search paths."
       :searchPaths ,(json-read-from-string pysyspath))))
 
 (defun lsp-python-ms--workspace-root ()
-  "Get the root, or just return `default-directory'."
-  (let ((proj (projectile-project-root)))
-    (if proj proj default-directory)))
+  "Get the root using ffip or projectile, or just return `default-directory'."
+  (cond
+   ((fboundp 'ffip-get-project-root-directory) (ffip-get-project-root-directory))
+   ((fboundp 'projectile-project-root)) (projectile-project-root)
+   (t default-directory)))
 
 (defun lsp-python-ms--find-dotnet ()
   "Get the path to dotnet, or return `lsp-python-ms-dotnet'."
@@ -88,6 +90,7 @@ search paths."
   "Filter nbsp entities from STR."
   (replace-regexp-in-string "&nbsp;" " " str))
 
+
 (defun lsp-python-ms--language-server-started-callback (workspace params)
   "Handle the python/languageServerStarted message"
   (lsp-workspace-status "::Started" workspace)
@@ -97,8 +100,18 @@ search paths."
   "Callback to register and configure the client after it's initialized"
   (lsp-client-on-notification client "python/languageServerStarted" 'lsp-python-ms--language-server-started-callback))
 
+;; this gets called when we do lsp-describe-thing-at-point
+;; see lsp-methods.el. As always, remove Microsoft's unwanted entities :(
 (setq lsp-render-markdown-markup-content #'lsp-python-ms--filter-nbsp)
+
+;; lsp-ui-doc--extract gets called when hover docs are requested
+;; as always, we have to remove Microsoft's unnecessary &nbsp; entities
 (advice-add 'lsp-ui-doc--extract
+            :filter-return #'lsp-python-ms--filter-nbsp)
+
+;; lsp-ui-sideline--format-info gets called when lsp-ui wants to show hover info in the sideline
+;; again &nbsp; has to be removed
+(advice-add 'lsp-ui-sideline--format-info
             :filter-return #'lsp-python-ms--filter-nbsp)
 
 (lsp-define-stdio-client
