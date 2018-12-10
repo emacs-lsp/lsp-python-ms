@@ -88,6 +88,15 @@ search paths."
   "Filter nbsp entities from STR."
   (replace-regexp-in-string "&nbsp;" " " str))
 
+(defun lsp-python-ms--language-server-started-callback (workspace params)
+  "Handle the python/languageServerStarted message"
+  (lsp-workspace-status "::Started" workspace)
+  (message "Python language server started"))
+
+(defun lsp-python-ms--client-initialized (client)
+  "Callback to register and configure the client after it's initialized"
+  (lsp-client-on-notification client "python/languageServerStarted" 'lsp-python-ms--language-server-started-callback))
+
 (setq lsp-render-markdown-markup-content #'lsp-python-ms--filter-nbsp)
 (advice-add 'lsp-ui-doc--extract
             :filter-return #'lsp-python-ms--filter-nbsp)
@@ -96,8 +105,8 @@ search paths."
  lsp-python "python"
  #'lsp-python-ms--workspace-root
  `(,(lsp-python-ms--find-dotnet) ,(concat lsp-python-ms-dir "Microsoft.Python.LanguageServer.dll"))
- :extra-init-params #'lsp-python-ms--extra-init-params)
-
+ :extra-init-params #'lsp-python-ms--extra-init-params
+ :initialize 'lsp-python-ms--client-initialized)
 
 (provide 'lsp-python-ms)
 
