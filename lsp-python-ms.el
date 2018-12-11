@@ -121,9 +121,11 @@ WORKSPACE is just used for logging and _PARAMS is unused."
   (lsp-workspace-status "::Started" workspace)
   (message "Python language server started"))
 
+
 (defun lsp-python-ms--client-initialized (client)
-  "Callback to register and configure the CLIENT after it's initialized."
-  (lsp-client-on-notification client "python/languageServerStarted" 'lsp-python-ms--language-server-started-callback))
+  "Callback to register and configure the CLIENT after it's initialized."
+  (lsp-client-on-notification client "python/languageServerStarted" 'lsp-python-ms--language-server-started-callback)
+  (lsp-client-on-notification client "telemetry/event" (lambda (&rest r))))
 
 ;; this gets called when we do lsp-describe-thing-at-point
 ;; see lsp-methods.el. As always, remove Microsoft's unwanted entities :(
@@ -163,6 +165,19 @@ WORKSPACE is just used for logging and _PARAMS is unused."
    :command-fn 'lsp-python-ms--command-string
    :extra-init-params #'lsp-python-ms--extra-init-params
    :initialize #'lsp-python-ms--client-initialized))
+
+;;; New lsp-mode
+(when (fboundp 'lsp-register-client)
+  (lsp-register-client
+   (make-lsp-client
+    :new-connection (lsp-stdio-connection 'lsp-python-ms--command-string)
+    :major-modes '(python-mode)
+    :server-id 'mspyls
+    :initialization-options 'lsp-python-ms--extra-init-params
+    :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started)
+                                   ("telemetry/event" (lambda (&rest r))))
+    )))
+
 
 (provide 'lsp-python-ms)
 
