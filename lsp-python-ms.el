@@ -69,7 +69,7 @@ paths and then the entire list will be json-encoded."
         (sp (concat "sys.path.insert(0, '" workspace-root "'); print(json.dumps(sys.path))")))
     (with-temp-buffer
       (call-process python nil t nil "-c" (concat init ver sp))
-      (subseq (split-string (buffer-string) "\n") 0 2))))
+      (cl-subseq (split-string (buffer-string) "\n") 0 2))))
 
 ;; I based most of this on the vs.code implementation:
 ;; https://github.com/Microsoft/vscode-python/blob/master/src/client/activation/languageServer/languageServer.ts#L219
@@ -79,7 +79,7 @@ paths and then the entire list will be json-encoded."
 
 Optionally add the WORKSPACE to the python search list."
   (let ((workspace-root (if workspace (lsp--workspace-root workspace) (pwd))))
-    (destructuring-bind (pyver pysyspath)
+    (cl-destructuring-bind (pyver pysyspath)
       (lsp-python-ms--get-python-ver-and-syspath workspace-root)
       `(:interpreter
         (:properties (:InterpreterPath ,(executable-find python-shell-interpreter)
