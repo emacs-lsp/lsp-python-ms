@@ -3,7 +3,7 @@
 ;; Author: Charl Botha
 ;; Maintainer: Andrew Christianson
 ;; Version: 0.1.0
-;; Package-Requires: (lsp-mode cl)
+;; Package-Requires: (cl-lib lsp-mode projectile python)
 ;; Homepage: https://git.sr.ht/~kristjansson/lsp-python-ms
 ;; Keywords: lsp python
 
@@ -29,7 +29,13 @@
 ;; from https://vxlabs.com/2018/11/19/configuring-emacs-lsp-mode-and-microsofts-visual-studio-code-python-language-server/
 
 ;;; Code:
-(require 'cl)
+(require 'cl-lib)
+(require 'lsp-mode)
+(require 'projectile)
+(require 'python)
+
+;; forward declare variable
+(defvar lsp-render-markdown-markup-content)
 
 (defvar lsp-python-ms-dir nil
   "Path to language server directory.
