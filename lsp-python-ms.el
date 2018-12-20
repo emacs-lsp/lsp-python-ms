@@ -95,14 +95,6 @@ Optionally add the WORKSPACE to the python search list."
                          :maxDocumentationTextLength 0)
         :searchPaths ,(json-read-from-string pysyspath)))))
 
-(defun lsp-python-ms--client-initialized (client)
-  "Callback for client initialized."
-  (lsp-client-on-notification client "python/languageServerStarted" 'lsp-python-ms--language-server-started))
-
-(defun lsp-python-ms--language-server-started (workspace params)
-  "Callback for server started initialized."
-  (message "[MS Python language server started]"))
-
 (defun lsp-python-ms--workspace-root ()
   "Get the root using ffip or projectile, or just return `default-directory'."
   (cond
