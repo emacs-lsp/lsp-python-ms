@@ -154,8 +154,16 @@ WORKSPACE is just used for logging and _PARAMS is unused."
     (list (lsp-python-ms--find-dotnet)
           (concat lsp-python-ms-dir "Microsoft.Python.LanguageServer.dll"))))
 
-;;; Old lsp-mode
-(unless (fboundp 'lsp-register-client)
+(if (fboundp 'lsp-register-client)
+    ;; New lsp-mode
+    (lsp-register-client
+     (make-lsp-client
+      :new-connection (lsp-stdio-connection 'lsp-python-ms--command-string)
+      :major-modes '(python-mode)
+      :server-id 'mspyls
+      :initialization-options 'lsp-python-ms--extra-init-params
+      :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started-callback))))
+  ;; Old lsp-mode
   (lsp-define-stdio-client
    lsp-python "python"
    #'lsp-python-ms--workspace-root
@@ -163,18 +171,6 @@ WORKSPACE is just used for logging and _PARAMS is unused."
    :command-fn 'lsp-python-ms--command-string
    :extra-init-params #'lsp-python-ms--extra-init-params
    :initialize #'lsp-python-ms--client-initialized))
-
-;;; New lsp-mode
-(when (fboundp 'lsp-register-client)
-  (lsp-register-client
-   (make-lsp-client
-    :new-connection (lsp-stdio-connection 'lsp-python-ms--command-string)
-    :major-modes '(python-mode)
-    :server-id 'mspyls
-    :initialization-options 'lsp-python-ms--extra-init-params
-    :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started))
-    )))
-
 
 (provide 'lsp-python-ms)
 
