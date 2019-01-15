@@ -26,7 +26,7 @@ lsp-mode client leveraging microsoft's [[https://github.com/Microsoft/python-lan
    #+BEGIN_SRC elisp
      (use-package lsp-python-ms
        :ensure nil
-       :hook (python-mode . lsp-python-enable)
+       :hook (python-mode . lsp)
        :config
 
        ;; for dev build of language server
