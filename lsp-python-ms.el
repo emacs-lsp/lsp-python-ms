@@ -3,7 +3,7 @@
 ;; Author: Charl Botha
 ;; Maintainer: Andrew Christianson
 ;; Version: 0.1.0
-;; Package-Requires: (lsp-mode cl)
+;; Package-Requires: (cl-lib lsp-mode projectile python)
 ;; Homepage: https://git.sr.ht/~kristjansson/lsp-python-ms
 ;; Keywords: lsp python
 
@@ -29,42 +29,57 @@
 ;; from https://vxlabs.com/2018/11/19/configuring-emacs-lsp-mode-and-microsofts-visual-studio-code-python-language-server/
 
 ;;; Code:
-(require 'cl)
+(require 'cl-lib)
+(require 'lsp-mode)
+(require 'projectile)
+(require 'python)
+
+;; forward declare variable
+(defvar lsp-render-markdown-markup-content)
 
 (defvar lsp-python-ms-dir nil
-  "Path to langeuage server directory containing Microsoft.Python.LanguageServer.dll")
+  "Path to language server directory.
+
+This is the directory containing Microsoft.Python.LanguageServer.dll.")
 
 (defvar lsp-python-ms-dotnet nil
-  "Full path to dotnet executable. You only need to set this if dotnet is not on your path.")
+  "Full path to dotnet executable.
+
+You only need to set this if dotnet is not on your path.")
 
 (defvar lsp-python-ms-executable
   (cond
    ((executable-find "Microsoft.Python.LanguageServer"))
    ((executable-find "Microsoft.Python.LanguageServer.exe"))
    (t nil))
-  "Path to Microsoft.Python.LanguageServer.exe")
+  "Path to Microsoft.Python.LanguageServer.exe.")
 
 ;; it's crucial that we send the correct Python version to MS PYLS,
 ;; else it returns no docs in many cases furthermore, we send the
 ;; current Python's (can be virtualenv) sys.path as searchPaths
 
 (defun lsp-python-ms--get-python-ver-and-syspath (workspace-root)
-  "Return list with pyver-string and json-encoded list of python
-search paths."
+  "Return list with pyver-string and list of python search paths.
+
+The WORKSPACE-ROOT will be prepended to the list of python search
+paths and then the entire list will be json-encoded."
   (let ((python (executable-find python-shell-interpreter))
         (init "from __future__ import print_function; import sys; import json;")
         (ver "print(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));")
         (sp (concat "sys.path.insert(0, '" workspace-root "'); print(json.dumps(sys.path))")))
     (with-temp-buffer
       (call-process python nil t nil "-c" (concat init ver sp))
-      (subseq (split-string (buffer-string) "\n") 0 2))))
+      (cl-subseq (split-string (buffer-string) "\n") 0 2))))
 
 ;; I based most of this on the vs.code implementation:
 ;; https://github.com/Microsoft/vscode-python/blob/master/src/client/activation/languageServer/languageServer.ts#L219
 ;; (it still took quite a while to get right, but here we are!)
 (defun lsp-python-ms--extra-init-params (&optional workspace)
+  "Return extra initialization params.
+
+Optionally add the WORKSPACE to the python search list."
   (let ((workspace-root (if workspace (lsp--workspace-root workspace) (pwd))))
-    (destructuring-bind (pyver pysyspath)
+    (cl-destructuring-bind (pyver pysyspath)
       (lsp-python-ms--get-python-ver-and-syspath workspace-root)
       `(:interpreter
         (:properties (:InterpreterPath ,(executable-find python-shell-interpreter)
@@ -79,14 +94,6 @@ search paths."
                          :trimDocumentationText :json-false
                          :maxDocumentationTextLength 0)
         :searchPaths ,(json-read-from-string pysyspath)))))
-
-(defun lsp-python-ms--client-initialized (client)
-  "Callback for client initialized."
-  (lsp-client-on-notification client "python/languageServerStarted" 'lsp-python-ms--language-server-started))
-
-(defun lsp-python-ms--language-server-started (workspace params)
-  "Callback for server started initialized."
-  (message "[MS Python language server started]"))
 
 (defun lsp-python-ms--workspace-root ()
   "Get the root using ffip or projectile, or just return `default-directory'."
@@ -107,14 +114,15 @@ search paths."
       (setq rx (concat rx "\\|\r")))
     (replace-regexp-in-string rx " " str)))
 
+(defun lsp-python-ms--language-server-started-callback (workspace _params)
+  "Handle the python/languageServerStarted message.
 
-(defun lsp-python-ms--language-server-started-callback (workspace params)
-  "Handle the python/languageServerStarted message"
+WORKSPACE is just used for logging and _PARAMS is unused."
   (lsp-workspace-status "::Started" workspace)
   (message "Python language server started"))
 
 (defun lsp-python-ms--client-initialized (client)
-  "Callback to register and configure the client after it's initialized"
+  "Callback to register and configure the CLIENT after it's initialized."
   (lsp-client-on-notification client "python/languageServerStarted" 'lsp-python-ms--language-server-started-callback))
 
 ;; this gets called when we do lsp-describe-thing-at-point
@@ -132,14 +140,22 @@ search paths."
             :filter-return #'lsp-python-ms--filter-nbsp)
 
 (defun lsp-python-ms--command-string ()
-  "Return the command that starts the server."
+  "Return the command to start the server."
   (if lsp-python-ms-executable
       lsp-python-ms-executable
     (list (lsp-python-ms--find-dotnet)
           (concat lsp-python-ms-dir "Microsoft.Python.LanguageServer.dll"))))
 
-;;; Old lsp-mode
-(unless (fboundp 'lsp-register-client)
+(if (fboundp 'lsp-register-client)
+    ;; New lsp-mode
+    (lsp-register-client
+     (make-lsp-client
+      :new-connection (lsp-stdio-connection 'lsp-python-ms--command-string)
+      :major-modes '(python-mode)
+      :server-id 'mspyls
+      :initialization-options 'lsp-python-ms--extra-init-params
+      :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started-callback))))
+  ;; Old lsp-mode
   (lsp-define-stdio-client
    lsp-python "python"
    #'lsp-python-ms--workspace-root
@@ -147,18 +163,6 @@ search paths."
    :command-fn 'lsp-python-ms--command-string
    :extra-init-params #'lsp-python-ms--extra-init-params
    :initialize #'lsp-python-ms--client-initialized))
-
-;;; New lsp-mode
-(when (fboundp 'lsp-register-client)
-  (lsp-register-client
-   (make-lsp-client
-    :new-connection (lsp-stdio-connection 'lsp-python-ms--command-string)
-    :major-modes '(python-mode)
-    :server-id 'mspyls
-    :initialization-options 'lsp-python-ms--extra-init-params
-    :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started))
-    )))
-
 
 (provide 'lsp-python-ms)
 
