@@ -112,7 +112,8 @@ Optionally add the WORKSPACE to the python search list."
   (let ((rx "&nbsp;"))
     (when (eq system-type 'windows-nt)
       (setq rx (concat rx "\\|\r")))
-    (replace-regexp-in-string rx " " str)))
+    (when str
+      (replace-regexp-in-string rx " " str))))
 
 (defun lsp-python-ms--language-server-started-callback (workspace _params)
   "Handle the python/languageServerStarted message.
