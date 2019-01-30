@@ -54,7 +54,7 @@ sibling to the root of every project you visit")
   "Get the path to dotnet, or return `lsp-python-ms-dotnet'."
   (cond
    ((boundp 'lsp-python-ms-dotnet) lsp-python-ms-dotnet)
-   (executable-find "dotnet")
+   ((executable-find "dotnet"))
    ((eq system-type 'windows-nt) "dotnet")
    (t nil)))
 
@@ -177,7 +177,7 @@ WORKSPACE is just used for logging and _PARAMS is unused."
    ((and (lsp-python-ms--find-dotnet) lsp-python-ms-dir)
     (list (lsp-python-ms--find-dotnet)
           (concat lsp-python-ms-dir "Microsoft.Python.LanguageServer.dll")))
-   (t (error "Could find Microsoft python language server."))))
+   (t (error "Could find Microsoft python language server"))))
 
 (if (fboundp 'lsp-register-client)
     ;; New lsp-mode
