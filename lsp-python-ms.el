@@ -185,6 +185,7 @@ WORKSPACE is just used for logging and _PARAMS is unused."
       :new-connection (lsp-stdio-connection 'lsp-python-ms--command-string)
       :major-modes '(python-mode)
       :server-id 'mspyls
+      :priority 1
       :initialization-options 'lsp-python-ms--extra-init-params
       :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started-callback)
                                      ("telemetry/event" 'ignore))))
