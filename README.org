@@ -11,14 +11,21 @@ lsp-mode client leveraging microsoft's [[https://github.com/Microsoft/python-lan
    #+END_SRC
 
    If you choose, compile the language server to a single executable
-   with one of:
+   with:
    #+BEGIN_SRC bash
    dotnet publish -c Release -r osx-x64   # mac
-   ln -sf $(git rev-parse --show-toplevel)/output/bin/Release/osx-x64/publish/Microsoft.Python.LanguageServer ~/.local/bin/  # or whereever you put your executables
    #+END_SRC
-   #+BEGIN_SRC  bash
-   dotnet publish -c Release -r win10-x64 # windows 10
+
+   change the value of the ~-r~ flag depending on your architecture and
+   operating system.  See Microsoft's [[https://docs.microsoft.com/en-us/dotnet/core/rid-catalog][Runtime ID Catalog]] for the right
+   value for your system.
+
+   Then, link the executable to somewhere on your path, e.g.
+   #+BEGIN_SRC bash
+   ln -sf $(git rev-parse --show-toplevel)/output/bin/Release/osx-x64/publish/Microsoft.Python.LanguageServer ~/.local/bin/
    #+END_SRC
+   note that, on some systems (for example, Fedora), the executable comes out as
+   ~Microsoft.Python.LanguageServer.LanguageServer~.
 
 3. Include ~lsp-python-ms~ in your config in your preferred manner. A
    minimal ~use-package~ initialization might be:
@@ -32,7 +39,7 @@ lsp-mode client leveraging microsoft's [[https://github.com/Microsoft/python-lan
        ;; for dev build of language server
        (setq lsp-python-ms-dir
              (expand-file-name "~/python-language-server/output/bin/Release/"))
-       ;; for executable of language server
+       ;; for executable of language server, if it's not symlinked on your PATH
        (setq lsp-python-ms-executable
              "~/python-language-server/output/bin/Release/osx-x64/publish/Microsoft.Python.LanguageServer"))
    #+END_SRC
