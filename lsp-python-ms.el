@@ -49,21 +49,36 @@ This is the directory containing Microsoft.Python.LanguageServer.dll.")
 If this is nil, the language server will write cache files in a directory
 sibling to the root of every project you visit")
 
+(defun lsp-python-ms--find-dotnet ()
+  "Get the path to dotnet, or return `lsp-python-ms-dotnet'."
+  (cond
+   ((boundp 'lsp-python-ms-dotnet) lsp-python-ms-dotnet)
+   (executable-find "dotnet")
+   ((eq system-type 'windows-nt) "dotnet")
+   (t nil)))
+
+(defvar lsp-python-ms-dotnet
+  (lsp-python-ms--find-dotnet)
   "Full path to dotnet executable.
 
 You only need to set this if dotnet is not on your path.")
 
-(defvar lsp-python-ms-executable
+(defun lsp-python-ms--find-server-executable ()
   (cond
+   ((boundp 'lsp-python-ms-executable) lsp-python-ms-executable)
    ((executable-find "Microsoft.Python.LanguageServer"))
    ((executable-find "Microsoft.Python.LanguageServer.LanguageServer"))
    ((executable-find "Microsoft.Python.LanguageServer.exe"))
-   (t nil))
+   (t nil)))
+
+(defvar lsp-python-ms-executable
+  (lsp-python-ms--find-server-executable)
   "Path to Microsoft.Python.LanguageServer.exe.")
 
 ;; it's crucial that we send the correct Python version to MS PYLS,
 ;; else it returns no docs in many cases furthermore, we send the
 ;; current Python's (can be virtualenv) sys.path as searchPaths
+
 
 (defun lsp-python-ms--get-python-ver-and-syspath (workspace-root)
   "Return list with pyver-string and list of python search paths.
@@ -119,11 +134,6 @@ that finds the current buffer's workspace root. If nothing works, default to the
    ((fboundp 'ffip-get-project-root-directory) (ffip-get-project-root-directory))
    (t default-directory)))
 
-(defun lsp-python-ms--find-dotnet ()
-  "Get the path to dotnet, or return `lsp-python-ms-dotnet'."
-  (let ((dotnet (if (eq system-type 'windows-nt) "dotnet" (executable-find "dotnet"))))
-    (if dotnet dotnet lsp-python-ms-dotnet)))
-
 (defun lsp-python-ms--filter-nbsp (str)
   "Filter nbsp entities from STR."
   (let ((rx "&nbsp;"))
@@ -161,10 +171,12 @@ WORKSPACE is just used for logging and _PARAMS is unused."
 
 (defun lsp-python-ms--command-string ()
   "Return the command to start the server."
-  (if lsp-python-ms-executable
-      lsp-python-ms-executable
+  (cond
+   ((lsp-python-ms--find-server-executable))
+   ((and (lsp-python-ms--find-dotnet) lsp-python-ms-dir)
     (list (lsp-python-ms--find-dotnet)
-          (concat lsp-python-ms-dir "Microsoft.Python.LanguageServer.dll"))))
+          (concat lsp-python-ms-dir "Microsoft.Python.LanguageServer.dll")))
+   (t (error "Could find Microsoft python language server."))))
 
 (if (fboundp 'lsp-register-client)
     ;; New lsp-mode
