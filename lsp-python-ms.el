@@ -50,6 +50,7 @@ You only need to set this if dotnet is not on your path.")
 (defvar lsp-python-ms-executable
   (cond
    ((executable-find "Microsoft.Python.LanguageServer"))
+   ((executable-find "Microsoft.Python.LanguageServer.LanguageServer"))
    ((executable-find "Microsoft.Python.LanguageServer.exe"))
    (t nil))
   "Path to Microsoft.Python.LanguageServer.exe.")
