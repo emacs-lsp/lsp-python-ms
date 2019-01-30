@@ -32,6 +32,7 @@
 (require 'cl-lib)
 (require 'lsp-mode)
 (require 'python)
+(require 'json)
 (require 'projectile nil 'noerror)
 
 ;; forward declare variable
