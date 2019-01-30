@@ -3,8 +3,8 @@
 ;; Author: Charl Botha
 ;; Maintainer: Andrew Christianson
 ;; Version: 0.1.0
-;; Homepage: https://git.sr.ht/~kristjansson/lsp-python-ms
 ;; Package-Requires: (cl-lib lsp-mode python json)
+;; Homepage: https://github.com/andrew-christianson/lsp-python-ms
 ;; Keywords: lsp python
 
 
