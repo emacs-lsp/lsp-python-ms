@@ -71,14 +71,23 @@ paths and then the entire list will be json-encoded."
       (call-process python nil t nil "-c" (concat init ver sp))
       (cl-subseq (split-string (buffer-string) "\n") 0 2))))
 
+(defun lsp-python-ms--workspace-root ()
+  "Get the root using `lsp-workspace-root', which is pressent in the \"new\" lsp-mode
+and works when there's an active session.  Next try ffip or projectile, or just return `default-directory'."
+  (let ((lsp-root (and (fboundp 'lsp-workspace-root) (lsp-workspace-root))))
+    (cond
+     (lsp-root lsp-root)
+     ((fboundp 'ffip-get-project-root-directory) (ffip-get-project-root-directory))
+     ((fboundp 'projectile-project-root)) (projectile-project-root)
+     (t default-directory))))
+
 ;; I based most of this on the vs.code implementation:
 ;; https://github.com/Microsoft/vscode-python/blob/master/src/client/activation/languageServer/languageServer.ts#L219
 ;; (it still took quite a while to get right, but here we are!)
 (defun lsp-python-ms--extra-init-params (&optional workspace)
-  "Return extra initialization params.
-
-Optionally add the WORKSPACE to the python search list."
-  (let ((workspace-root (if workspace (lsp--workspace-root workspace) (pwd))))
+  "Old lsp will pass in a workspace, new lsp has a global lsp-workspace-root function
+that finds the current buffer's workspace root. If nothing works, default to the current file's directory"
+  (let ((workspace-root (if workspace (lsp--workspace-root workspace) (lsp-python-ms--workspace-root))))
     (cl-destructuring-bind (pyver pysyspath)
       (lsp-python-ms--get-python-ver-and-syspath workspace-root)
       `(:interpreter
@@ -94,13 +103,6 @@ Optionally add the WORKSPACE to the python search list."
                          :trimDocumentationText :json-false
                          :maxDocumentationTextLength 0)
         :searchPaths ,(json-read-from-string pysyspath)))))
-
-(defun lsp-python-ms--workspace-root ()
-  "Get the root using ffip or projectile, or just return `default-directory'."
-  (cond
-   ((fboundp 'ffip-get-project-root-directory) (ffip-get-project-root-directory))
-   ((fboundp 'projectile-project-root)) (projectile-project-root)
-   (t default-directory)))
 
 (defun lsp-python-ms--find-dotnet ()
   "Get the path to dotnet, or return `lsp-python-ms-dotnet'."
@@ -122,9 +124,11 @@ WORKSPACE is just used for logging and _PARAMS is unused."
   (lsp-workspace-status "::Started" workspace)
   (message "Python language server started"))
 
+
 (defun lsp-python-ms--client-initialized (client)
-  "Callback to register and configure the CLIENT after it's initialized."
-  (lsp-client-on-notification client "python/languageServerStarted" 'lsp-python-ms--language-server-started-callback))
+  "Callback to register and configure the CLIENT after it's initialized."
+  (lsp-client-on-notification client "python/languageServerStarted" 'lsp-python-ms--language-server-started-callback)
+  (lsp-client-on-notification client "telemetry/event" 'ignore))
 
 ;; this gets called when we do lsp-describe-thing-at-point
 ;; see lsp-methods.el. As always, remove Microsoft's unwanted entities :(
@@ -155,7 +159,8 @@ WORKSPACE is just used for logging and _PARAMS is unused."
       :major-modes '(python-mode)
       :server-id 'mspyls
       :initialization-options 'lsp-python-ms--extra-init-params
-      :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started-callback))))
+      :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started-callback)
+                                     ("telemetry/event" 'ignore))))
   ;; Old lsp-mode
   (lsp-define-stdio-client
    lsp-python "python"
