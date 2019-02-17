@@ -99,12 +99,11 @@ paths and then the entire list will be json-encoded."
 Use `lsp-workspace-root', which is pressent in the \"new\"
 lsp-mode and works when there's an active session.  Next try ffip
 or projectile, or just return `default-directory'."
-  (let ((lsp-root (and (fboundp 'lsp-workspace-root) (lsp-workspace-root))))
-    (cond
-     (lsp-root)
-     ((fboundp 'ffip-get-project-root-directory) (ffip-get-project-root-directory))
-     ((fboundp 'projectile-project-root)) (projectile-project-root)
-     (t default-directory))))
+  (cond
+   ((and (fboundp #'lsp-workspace-root) (lsp-workspace-root)))
+   ((fboundp #'ffip-get-project-root-directory) (ffip-get-project-root-directory))
+   ((fboundp #'projectile-project-root)) (projectile-project-root)
+   (t default-directory)))
 
 ;; I based most of this on the vs.code implementation:
 ;; https://github.com/Microsoft/vscode-python/blob/master/src/client/activation/languageServer/languageServer.ts#L219
