@@ -63,7 +63,7 @@ You only need to set this if dotnet is not on your path.")
 
 The WORKSPACE-ROOT will be prepended to the list of python search
 paths and then the entire list will be json-encoded."
-  (let ((python (executable-find python-shell-interpreter))
+  (let ((python (executable-find "python"))
         (init "from __future__ import print_function; import sys; import json;")
         (ver "print(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));")
         (sp (concat "sys.path.insert(0, '" workspace-root "'); print(json.dumps(sys.path))")))
@@ -82,7 +82,7 @@ Optionally add the WORKSPACE to the python search list."
     (cl-destructuring-bind (pyver pysyspath)
       (lsp-python-ms--get-python-ver-and-syspath workspace-root)
       `(:interpreter
-        (:properties (:InterpreterPath ,(executable-find python-shell-interpreter)
+        (:properties (:InterpreterPath ,(executable-find "python")
                       ;; this database dir will be created if required
                       :DatabasePath ,(expand-file-name (concat lsp-python-ms-dir "db/"))
                       :Version ,pyver))
