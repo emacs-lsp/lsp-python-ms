@@ -45,7 +45,7 @@ This is the directory containing Microsoft.Python.LanguageServer.dll.")
 
 (defvar lsp-python-ms-cache-dir
   (directory-file-name (locate-user-emacs-file ".lsp-python/"))
-  "Path to directory where the server will write cache files
+  "Path to directory where the server will write cache files.
 
 If this is nil, the language server will write cache files in a directory
 sibling to the root of every project you visit")
@@ -79,8 +79,6 @@ You only need to set this if dotnet is not on your path.")
 ;; it's crucial that we send the correct Python version to MS PYLS,
 ;; else it returns no docs in many cases furthermore, we send the
 ;; current Python's (can be virtualenv) sys.path as searchPaths
-
-
 (defun lsp-python-ms--get-python-ver-and-syspath (workspace-root)
   "Return list with pyver-string and list of python search paths.
 
@@ -95,11 +93,14 @@ paths and then the entire list will be json-encoded."
       (cl-subseq (split-string (buffer-string) "\n") 0 2))))
 
 (defun lsp-python-ms--workspace-root ()
-  "Get the root using `lsp-workspace-root', which is pressent in the \"new\" lsp-mode
-and works when there's an active session.  Next try ffip or projectile, or just return `default-directory'."
+  "Get the path of the root of the current workspace.
+
+Use `lsp-workspace-root', which is pressent in the \"new\"
+lsp-mode and works when there's an active session.  Next try ffip
+or projectile, or just return `default-directory'."
   (let ((lsp-root (and (fboundp 'lsp-workspace-root) (lsp-workspace-root))))
     (cond
-     (lsp-root lsp-root)
+     (lsp-root)
      ((fboundp 'ffip-get-project-root-directory) (ffip-get-project-root-directory))
      ((fboundp 'projectile-project-root)) (projectile-project-root)
      (t default-directory))))
@@ -108,8 +109,12 @@ and works when there's an active session.  Next try ffip or projectile, or just 
 ;; https://github.com/Microsoft/vscode-python/blob/master/src/client/activation/languageServer/languageServer.ts#L219
 ;; (it still took quite a while to get right, but here we are!)
 (defun lsp-python-ms--extra-init-params (&optional workspace)
-  "Old lsp will pass in a workspace, new lsp has a global lsp-workspace-root function
-that finds the current buffer's workspace root. If nothing works, default to the current file's directory"
+  "Return form describing parameters for language server.
+
+Old lsp will pass in a WORKSPACE, new lsp has a global
+lsp-workspace-root function that finds the current buffer's
+workspace root.  If nothing works, default to the current file's
+directory"
   (let ((workspace-root (if workspace (lsp--workspace-root workspace) (lsp-python-ms--workspace-root))))
     (cl-destructuring-bind (pyver pysyspath)
         (lsp-python-ms--get-python-ver-and-syspath workspace-root)
