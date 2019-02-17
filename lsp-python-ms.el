@@ -1,11 +1,11 @@
-;;; lsp-python-ms.el --- summary -*- lexical-binding: t -*-
+;;; lsp-python-ms.el --- lsp-mode client for Microsoft python-language-server -*- lexical-binding: t -*-
 
 ;; Author: Charl Botha
 ;; Maintainer: Andrew Christianson
 ;; Version: 0.1.0
-;; Package-Requires: (cl-lib lsp-mode python json)
+;; Package-Requires: (cl-lib lsp-mode python json (emacs "24.4"))
 ;; Homepage: https://github.com/andrew-christianson/lsp-python-ms
-;; Keywords: lsp python
+;; Keywords: languages tools
 
 
 ;; This file is not part of GNU Emacs
@@ -65,6 +65,7 @@ sibling to the root of every project you visit")
 You only need to set this if dotnet is not on your path.")
 
 (defun lsp-python-ms--find-server-executable ()
+  "Get path to the python language server executable."
   (cond
    ((boundp 'lsp-python-ms-executable) lsp-python-ms-executable)
    ((executable-find "Microsoft.Python.LanguageServer"))
@@ -119,7 +120,8 @@ directory"
     (cl-destructuring-bind (pyver pysyspath)
         (lsp-python-ms--get-python-ver-and-syspath workspace-root)
       `(:interpreter
-        (:properties (:InterpreterPath ,(executable-find "python")
+        (:properties (:InterpreterPath
+                      ,(executable-find "python")
                       ;; this database dir will be created if required
                       :DatabasePath ,(expand-file-name (directory-file-name lsp-python-ms-cache-dir))
                       :Version ,pyver))
@@ -149,11 +151,14 @@ WORKSPACE is just used for logging and _PARAMS is unused."
   (lsp-workspace-status "::Started" workspace)
   (message "Python language server started"))
 
-
 (defun lsp-python-ms--client-initialized (client)
-  "Callback to register and configure the CLIENT after it's initialized."
-  (lsp-client-on-notification client "python/languageServerStarted" 'lsp-python-ms--language-server-started-callback)
-  (lsp-client-on-notification client "telemetry/event" 'ignore))
+  "Callback to register and configure client after it's initialized.
+
+After CLIENT is initialized, this function is called to configure
+other handlers. "
+  (lsp-client-on-notification client "python/languageServerStarted"
+                              #'lsp-python-ms--language-server-started-callback)
+  (lsp-client-on-notification client "telemetry/event" #'ignore))
 
 ;; this gets called when we do lsp-describe-thing-at-point
 ;; see lsp-methods.el. As always, remove Microsoft's unwanted entities :(
