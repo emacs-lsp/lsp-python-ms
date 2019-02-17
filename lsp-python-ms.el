@@ -133,12 +133,6 @@ directory"
                          :maxDocumentationTextLength 0)
         :searchPaths ,(json-read-from-string pysyspath)))))
 
-(defun lsp-python-ms--workspace-root ()
-  "Get the root using ffip or projectile, or just return `default-directory'."
-  (cond
-   ((fboundp 'projectile-project-root)) (projectile-project-root)
-   ((fboundp 'ffip-get-project-root-directory) (ffip-get-project-root-directory))
-   (t default-directory)))
 
 (defun lsp-python-ms--filter-nbsp (str)
   "Filter nbsp entities from STR."
