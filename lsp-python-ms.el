@@ -191,8 +191,13 @@ other handlers. "
       :server-id 'mspyls
       :priority 1
       :initialization-options 'lsp-python-ms--extra-init-params
-      :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started-callback)
-                                     ("telemetry/event" 'ignore))))
+      :notification-handlers (lsp-ht ("python/languageServerStarted"
+                                      'lsp-python-ms--language-server-started-callback)
+                                     ("telemetry/event" 'ignore)
+                                     ;; TODO handle this more gracefully
+                                     ("python/reportProgress" 'ignore)
+                                     ("python/beingProgress" 'ignore)
+                                     ("python/endProgress" 'ignore))))
   ;; Old lsp-mode
   (lsp-define-stdio-client
    lsp-python "python"
