@@ -196,7 +196,7 @@ other handlers. "
                                      ("telemetry/event" 'ignore)
                                      ;; TODO handle this more gracefully
                                      ("python/reportProgress" 'ignore)
-                                     ("python/beingProgress" 'ignore)
+                                     ("python/beginProgress" 'ignore)
                                      ("python/endProgress" 'ignore))))
   ;; Old lsp-mode
   (lsp-define-stdio-client
