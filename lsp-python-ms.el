@@ -34,6 +34,7 @@
 (require 'python)
 (require 'json)
 (require 'projectile nil 'noerror)
+(require 'find-file-in-project nil 'noerror)
 
 ;; forward declare variable
 (defvar lsp-render-markdown-markup-content)
