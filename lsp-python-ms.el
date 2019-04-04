@@ -182,30 +182,19 @@ other handlers. "
           (concat lsp-python-ms-dir "Microsoft.Python.LanguageServer.dll")))
    (t (error "Could find Microsoft python language server"))))
 
-(if (fboundp 'lsp-register-client)
-    ;; New lsp-mode
-    (lsp-register-client
-     (make-lsp-client
-      :new-connection (lsp-stdio-connection 'lsp-python-ms--command-string)
-      :major-modes '(python-mode)
-      :server-id 'mspyls
-      :priority 1
-      :initialization-options 'lsp-python-ms--extra-init-params
-      :notification-handlers (lsp-ht ("python/languageServerStarted"
-                                      'lsp-python-ms--language-server-started-callback)
-                                     ("telemetry/event" 'ignore)
-                                     ;; TODO handle this more gracefully
-                                     ("python/reportProgress" 'ignore)
-                                     ("python/beginProgress" 'ignore)
-                                     ("python/endProgress" 'ignore))))
-  ;; Old lsp-mode
-  (lsp-define-stdio-client
-   lsp-python "python"
-   #'lsp-python-ms--workspace-root
-   nil
-   :command-fn 'lsp-python-ms--command-string
-   :extra-init-params #'lsp-python-ms--extra-init-params
-   :initialize #'lsp-python-ms--client-initialized))
+(lsp-register-client
+ (make-lsp-client
+  :new-connection (lsp-stdio-connection 'lsp-python-ms--command-string)
+  :major-modes '(python-mode)
+  :server-id 'mspyls
+  :priority 1
+  :initialization-options 'lsp-python-ms--extra-init-params
+  :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started-callback)
+                                 ("telemetry/event" 'ignore)
+                                 ;; TODO handle this more gracefully
+                                 ("python/reportProgress" 'ignore)
+                                 ("python/beginProgress" 'ignore)
+                                 ("python/endProgress" 'ignore))))
 
 (provide 'lsp-python-ms)
 
