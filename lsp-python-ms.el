@@ -142,7 +142,7 @@ directory"
                          :maxDocumentationLineLength 0
                          :trimDocumentationText :json-false
                          :maxDocumentationTextLength 0)
-        :searchPaths ,(append lsp-python-ms-extra-paths (json-read-from-string pysyspath))))))
+        :searchPaths ,(vconcat lsp-python-ms-extra-paths (json-read-from-string pysyspath))))))
 
 
 (defun lsp-python-ms--filter-nbsp (str)
