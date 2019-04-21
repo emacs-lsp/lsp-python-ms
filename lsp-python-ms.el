@@ -65,6 +65,15 @@ sibling to the root of every project you visit")
 
 You only need to set this if dotnet is not on your path.")
 
+(defvar lsp-python-ms-extra-paths '()
+  "A list of additional paths to search for python packages
+
+This should be a list of paths corresponding to additional python
+library directories you want to search for completions.  Paths
+should be as they are (or would appear) in sys.path.  Paths will
+be prepended to the search path, and so will shadow duplicate
+names in search paths returned by the interpreter.")
+
 (defun lsp-python-ms--find-server-executable ()
   "Get path to the python language server executable."
   (cond
@@ -133,7 +142,7 @@ directory"
                          :maxDocumentationLineLength 0
                          :trimDocumentationText :json-false
                          :maxDocumentationTextLength 0)
-        :searchPaths ,(json-read-from-string pysyspath)))))
+        :searchPaths ,(vconcat lsp-python-ms-extra-paths (json-read-from-string pysyspath))))))
 
 
 (defun lsp-python-ms--filter-nbsp (str)
