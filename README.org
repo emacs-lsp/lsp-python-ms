@@ -45,6 +45,18 @@ lsp-mode client leveraging microsoft's [[https://github.com/Microsoft/python-lan
    #+END_SRC
 
 For developement, you might find it useful to run =cask install=.
+
+* Configuration
+*** Server settings
+    If you'd like to provide configuration to the language server, you can set ~lsp-python-ms-server-settings~ before
+    initialization.  This is a plist with ~:[setting name] -> value~, and it's equivalent to using ~settings.json~ in MS Visual Studio.
+    For example
+
+    #+begin_src elisp
+    (setq lsp-python-ms-server-settings
+       '(:python.analysis.logLevel "info"
+         :python.analysis.errors ("undefined-variable")))
+    #+end_src
 * Credit
 
 All credit to [[https://cpbotha.net][cpbotha]] on [[https://vxlabs.com/2018/11/19/configuring-emacs-lsp-mode-and-microsofts-visual-studio-code-python-language-server/][vxlabs]]!  This just tidies and packages his
