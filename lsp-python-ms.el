@@ -74,6 +74,9 @@ should be as they are (or would appear) in sys.path.  Paths will
 be prepended to the search path, and so will shadow duplicate
 names in search paths returned by the interpreter.")
 
+(defvar lsp-python-ms-server-setings nil
+  "Settings for the python language server.  This should be a plist of :<setting name> -> value")
+
 (defun lsp-python-ms--find-server-executable ()
   "Get path to the python language server executable."
   (cond
@@ -199,6 +202,10 @@ other handlers. "
   :server-id 'mspyls
   :priority 1
   :initialization-options 'lsp-python-ms--extra-init-params
+  :initialized-fn (lambda (workspace)
+                    (when lsp-python-ms-server-setings
+                      (with-lsp-workspace workspace
+                        (lsp--set-configuration `(:python ,lsp-python-ms-server-setings)))))
   :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started-callback)
                                  ("telemetry/event" 'ignore)
                                  ;; TODO handle this more gracefully
