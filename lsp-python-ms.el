@@ -192,6 +192,24 @@ other handlers. "
           (concat lsp-python-ms-dir "Microsoft.Python.LanguageServer.dll")))
    (t (error "Could find Microsoft python language server"))))
 
+
+;; See https://github.com/microsoft/python-language-server for more diagnostics
+(defcustom lsp-mspyls-errors '("unknown-parameter-name"
+                               "undefined-variable"
+                               "parameter-missing"
+                               "positional-argument-after-keyword"
+                               "too-many-function-arguments"
+                               )
+  "Microsoft Python LSP Error types.")
+
+(defcustom lsp-mspyls-warnings '("unresolved-import"
+                                 "parameter-already-specified"
+                                 "too-many-positional-arguments-before-star")
+  "Microsoft Python LSP Warning types.")
+
+(lsp-register-custom-settings '(("python.analysis.errors" lsp-mspyls-errors)))
+(lsp-register-custom-settings '(("python.analysis.warnings" lsp-mspyls-warnings)))
+
 (lsp-register-client
  (make-lsp-client
   :new-connection (lsp-stdio-connection 'lsp-python-ms--command-string)
@@ -204,7 +222,10 @@ other handlers. "
                                  ;; TODO handle this more gracefully
                                  ("python/reportProgress" 'ignore)
                                  ("python/beginProgress" 'ignore)
-                                 ("python/endProgress" 'ignore))))
+                                 ("python/endProgress" 'ignore))
+  :initialized-fn (lambda (workspace)
+                    (with-lsp-workspace workspace
+                      (lsp--set-configuration (lsp-configuration-section "python"))))))
 
 (provide 'lsp-python-ms)
 
