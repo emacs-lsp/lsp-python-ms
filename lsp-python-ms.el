@@ -194,17 +194,16 @@ other handlers. "
 
 
 ;; See https://github.com/microsoft/python-language-server for more diagnostics
-(defcustom lsp-mspyls-errors '("unknown-parameter-name"
-                               "undefined-variable"
-                               "parameter-missing"
-                               "positional-argument-after-keyword"
-                               "too-many-function-arguments"
-                               )
+(defcustom lsp-mspyls-errors ["unknown-parameter-name"
+                              "undefined-variable"
+                              "parameter-missing"
+                              "positional-argument-after-keyword"
+                              "too-many-function-arguments"]
   "Microsoft Python LSP Error types.")
 
-(defcustom lsp-mspyls-warnings '("unresolved-import"
-                                 "parameter-already-specified"
-                                 "too-many-positional-arguments-before-star")
+(defcustom lsp-mspyls-warnings ["unresolved-import"
+                                "parameter-already-specified"
+                                "too-many-positional-arguments-before-star"]
   "Microsoft Python LSP Warning types.")
 
 (lsp-register-custom-settings '(("python.analysis.errors" lsp-mspyls-errors)))
