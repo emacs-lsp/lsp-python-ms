@@ -153,7 +153,7 @@ directory"
                          :maxDocumentationLineLength 0
                          :trimDocumentationText :json-false
                          :maxDocumentationTextLength 0)
-        ;;:searchPaths ,(vconcat lsp-python-ms-extra-paths (json-read-from-string pysyspath))
+        :searchPaths ,(or lsp-python-ms-extra-paths (list ""))
         :analysisUpdates t
         :asyncStartup t
         :typeStubSearchPaths ,(list (concat lsp-python-ms-dir "Typeshed"))))))
