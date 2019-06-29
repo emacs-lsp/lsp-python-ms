@@ -1,50 +1,21 @@
-lsp-mode client leveraging microsoft's [[https://github.com/Microsoft/python-language-server][python-language-server]]
+=lsp-mode= client leveraging microsoft's [[https://github.com/Microsoft/python-language-server][python-language-server]]
 
 * Installation
+Include ~lsp-python-ms~ in the configuration file:
+#+BEGIN_SRC emacs-lisp
+(require lsp-python-ms)
+(add-hook 'python-mode #'lsp) ; or lsp-deferred
+#+END_SRC
 
-1. Install [[https://www.microsoft.com/net/download][dotnet-sdk]]
-2. Clone and install [[https://github.com/Microsoft/python-language-server][python-language-server]]:
-   #+BEGIN_SRC bash
-   git clone https://github.com/Microsoft/python-language-server.git
-   cd python-language-server/src/LanguageServer/Impl
-   dotnet build -c Release
-   #+END_SRC
+A minimal ~use-package~ initialization might be:
+#+BEGIN_SRC elisp
+  (use-package lsp-python-ms
+    :ensure t
+    :demand
+    :hook (python-mode . lsp))  ; or lsp-deferred
+#+END_SRC
 
-   If you choose, compile the language server to a single executable
-   with:
-   #+BEGIN_SRC bash
-   dotnet publish -c Release -r osx-x64   # mac
-   #+END_SRC
-
-   change the value of the ~-r~ flag depending on your architecture and
-   operating system.  See Microsoft's [[https://docs.microsoft.com/en-us/dotnet/core/rid-catalog][Runtime ID Catalog]] for the right
-   value for your system.
-
-   Then, link the executable to somewhere on your path, e.g.
-   #+BEGIN_SRC bash
-   ln -sf $(git rev-parse --show-toplevel)/output/bin/Release/osx-x64/publish/Microsoft.Python.LanguageServer ~/.local/bin/
-   #+END_SRC
-   note that, on some systems (for example, Fedora), the executable comes out as
-   ~Microsoft.Python.LanguageServer.LanguageServer~.
-
-3. Include ~lsp-python-ms~ in your config in your preferred manner. A
-   minimal ~use-package~ initialization might be:
-
-   #+BEGIN_SRC elisp
-     (use-package lsp-python-ms
-       :ensure nil
-       :hook (python-mode . lsp)
-       :config
-
-       ;; for dev build of language server
-       (setq lsp-python-ms-dir
-             (expand-file-name "~/python-language-server/output/bin/Release/"))
-       ;; for executable of language server, if it's not symlinked on your PATH
-       (setq lsp-python-ms-executable
-             "~/python-language-server/output/bin/Release/osx-x64/publish/Microsoft.Python.LanguageServer"))
-   #+END_SRC
-
-For developement, you might find it useful to run =cask install=.
+For development, you might find it useful to run =cask install=.
 * Credit
 
 All credit to [[https://cpbotha.net][cpbotha]] on [[https://vxlabs.com/2018/11/19/configuring-emacs-lsp-mode-and-microsofts-visual-studio-code-python-language-server/][vxlabs]]!  This just tidies and packages his

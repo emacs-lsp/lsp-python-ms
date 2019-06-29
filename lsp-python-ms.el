@@ -2,7 +2,7 @@
 
 ;; Author: Charl Botha
 ;; Maintainer: Andrew Christianson
-;; Version: 0.1.0
+;; Version: 0.2.0
 ;; Package-Requires: ((cl-lib "0.6.1") (lsp-mode "6.0") (python "0.26.1") (json "1.4") (emacs "24.4"))
 ;; Homepage: https://github.com/andrew-christianson/lsp-python-ms
 ;; Keywords: languages tools
@@ -39,7 +39,7 @@
 ;; forward declare variable
 (defvar lsp-render-markdown-markup-content)
 
-(defvar lsp-python-ms-dir nil
+(defvar lsp-python-ms-dir (expand-file-name "mspyls/" user-emacs-directory)
   "Path to language server directory.
 
 This is the directory containing Microsoft.Python.LanguageServer.dll.")
@@ -52,20 +52,6 @@ This is the directory containing Microsoft.Python.LanguageServer.dll.")
 
 ;; If this is nil, the language server will write cache files in a directory
 ;; sibling to the root of every project you visit")
-
-(defun lsp-python-ms--find-dotnet ()
-  "Get the path to dotnet, or return `lsp-python-ms-dotnet'."
-  (cond
-   ((boundp 'lsp-python-ms-dotnet) lsp-python-ms-dotnet)
-   ((executable-find "dotnet"))
-   ((eq system-type 'windows-nt) "dotnet")
-   (t nil)))
-
-(defvar lsp-python-ms-dotnet
-  (lsp-python-ms--find-dotnet)
-  "Full path to dotnet executable.
-
-You only need to set this if dotnet is not on your path.")
 
 (defvar lsp-python-ms-extra-paths '()
   "A list of additional paths to search for python packages.
@@ -85,18 +71,75 @@ e.g, there are `python2' and `python3', both in system PATH,
 and the default `python' links to python2,
 set as `python3' to let ms-pyls use python 3 environments.")
 
-(defun lsp-python-ms--find-server-executable ()
-  "Get path to the python language server executable."
-  (cond
-   ((boundp 'lsp-python-ms-executable) lsp-python-ms-executable)
-   ((executable-find "Microsoft.Python.LanguageServer"))
-   ((executable-find "Microsoft.Python.LanguageServer.LanguageServer"))
-   ((executable-find "Microsoft.Python.LanguageServer.exe"))
-   (t nil)))
-
-(defvar lsp-python-ms-executable
-  (lsp-python-ms--find-server-executable)
+(defvar lsp-python-ms-executable (concat lsp-python-ms-dir
+                                         "Microsoft.Python.LanguageServer"
+                                         (and (eq system-type 'windows-nt) ".exe"))
   "Path to Microsoft.Python.LanguageServer.exe.")
+
+(defun lsp-python-ms-latest-nupkg-url (&optional channel)
+  "Get the nupkg url of the latest Microsoft Python Language Server."
+  (let ((channel (or channel "stable")))
+    (unless (member channel '("stable" "beta" "daily"))
+      (error (format "Unknown channel: %s" channel)))
+    (with-current-buffer
+        (url-retrieve-synchronously
+         (format "https://pvsc.blob.core.windows.net/python-language-server-%s\
+?restype=container&comp=list&prefix=Python-Language-Server-%s-x64"
+                 channel
+                 (cond ((eq system-type 'darwin)  "osx")
+                       ((eq system-type 'gnu/linux) "linux")
+                       ((eq system-type 'windows-nt) "win")
+                       (t (error (format "Unsupported system: %s" system-type))))))
+      (goto-char (point-min))
+      (re-search-forward "\n\n")
+      (pcase (xml-parse-region (point) (point-max))
+        (`((EnumerationResults
+            ((ContainerName . ,_))
+            (Prefix nil ,_)
+            (Blobs nil . ,blobs)
+            (NextMarker nil)))
+         (cdar
+          (sort
+           (mapcar (lambda (blob)
+                     (pcase blob
+                       (`(Blob
+                          nil
+                          (Name nil ,_)
+                          (Url nil ,url)
+                          (Properties nil (Last-Modified nil ,last-modified) . ,_))
+                        (cons (encode-time (parse-time-string last-modified)) url))))
+                   blobs)
+           (lambda (t1 t2)
+             (time-less-p (car t2) (car t1))))))))))
+
+(defun lsp-python-ms-setup (&optional forced)
+  "Downloading Microsoft Python Language Server to path specified.
+With prefix, FORCED to redownload the server."
+  (interactive "P")
+  (unless (and (not forced)
+               (file-exists-p lsp-python-ms-executable))
+    (let ((temp-file (make-temp-file "mspyls" nil ".zip"))
+          (unzip-script (cond ((executable-find "unzip")
+                               "bash -c 'mkdir -p %2$s && unzip -qq %1$s -d %2$s'")
+                              ((executable-find "powershell")
+                               "powershell -noprofile -noninteractive \
+-nologo -ex bypass Expand-Archive -path '%s' -dest '%s'")
+                              (t nil))))
+      (message "Downloading Microsoft Python Language Server...")
+
+      (url-copy-file (lsp-python-ms-latest-nupkg-url) temp-file 'overwrite)
+      (if (file-exists-p lsp-python-ms-dir) (delete-directory lsp-python-ms-dir 'recursive))
+      (shell-command (format unzip-script temp-file lsp-python-ms-dir))
+      (if (file-exists-p lsp-python-ms-executable) (chmod lsp-python-ms-executable #o755))
+
+      (message "Downloaded Microsoft Python Language Server!"))))
+
+(defun lsp-python-ms-update-server ()
+  "Update Microsoft Python Language Server."
+  (interactive)
+  (message "Server update started...")
+  (lsp-python-ms-setup t)
+  (message "Server update finished..."))
 
 ;; it's crucial that we send the correct Python version to MS PYLS,
 ;; else it returns no docs in many cases furthermore, we send the
@@ -137,7 +180,7 @@ lsp-workspace-root function that finds the current buffer's
 workspace root.  If nothing works, default to the current file's
 directory"
   (let ((workspace-root (if workspace (lsp--workspace-root workspace) (lsp-python-ms--workspace-root))))
-    (cl-destructuring-bind (pyver pysyspath)
+    (cl-destructuring-bind (pyver _pysyspath)
         (lsp-python-ms--get-python-ver-and-syspath workspace-root)
       `(:interpreter
         (:properties (:InterpreterPath
@@ -159,7 +202,6 @@ directory"
         :analysisUpdates t
         :asyncStartup t
         :typeStubSearchPaths ,(vector (concat lsp-python-ms-dir "Typeshed"))))))
-
 
 (defun lsp-python-ms--filter-nbsp (str)
   "Filter nbsp entities from STR."
@@ -201,13 +243,18 @@ other handlers. "
 
 (defun lsp-python-ms--command-string ()
   "Return the command to start the server."
-  (cond
-   ((lsp-python-ms--find-server-executable))
-   ((and (lsp-python-ms--find-dotnet) lsp-python-ms-dir)
-    (list (lsp-python-ms--find-dotnet)
-          (concat lsp-python-ms-dir "Microsoft.Python.LanguageServer.dll")))
-   (t (error "Could find Microsoft python language server"))))
+  ;; Try to download server if it doesn't exists
+  (unless (file-exists-p lsp-python-ms-executable)
+    (lsp-python-ms-setup))
 
+  (if (file-exists-p lsp-python-ms-executable)
+      lsp-python-ms-executable
+    (error "Could find Microsoft python language server")))
+
+(defgroup lsp-mspyls nil
+  "LSP support for Python, using Microsoft Python Language Server."
+  :group 'lsp-mode
+  :link '(url-link "https://github.com/emacs-lsp/lsp-python-ms"))
 
 ;; See https://github.com/microsoft/python-language-server for more diagnostics
 (defcustom lsp-mspyls-errors ["unknown-parameter-name"
@@ -215,12 +262,16 @@ other handlers. "
                               "parameter-missing"
                               "positional-argument-after-keyword"
                               "too-many-function-arguments"]
-  "Microsoft Python LSP Error types.")
+  "Microsoft Python LSP Error types."
+  :group 'lsp-mspyls
+  :type 'vector)
 
 (defcustom lsp-mspyls-warnings ["unresolved-import"
                                 "parameter-already-specified"
                                 "too-many-positional-arguments-before-star"]
-  "Microsoft Python LSP Warning types.")
+  "Microsoft Python LSP Warning types."
+  :group 'lsp-mspyls
+  :type 'vector)
 
 (lsp-register-custom-settings '(("python.analysis.errors" lsp-mspyls-errors)))
 (lsp-register-custom-settings '(("python.analysis.warnings" lsp-mspyls-warnings)))
