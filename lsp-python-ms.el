@@ -76,6 +76,10 @@ set as `python3' to let ms-pyls use python 3 environments.")
                                          (and (eq system-type 'windows-nt) ".exe"))
   "Path to Microsoft.Python.LanguageServer.exe.")
 
+(defvar lsp-python-ms-nupkg-channel "stable"
+  "The channel of nupkg for Microsoft Python Language Server:
+stable, beta or daily.")
+
 (defun lsp-python-ms-latest-nupkg-url (&optional channel)
   "Get the nupkg url of the latest Microsoft Python Language Server."
   (let ((channel (or channel "stable")))
@@ -127,10 +131,13 @@ With prefix, FORCED to redownload the server."
                               (t nil))))
       (message "Downloading Microsoft Python Language Server...")
 
-      (url-copy-file (lsp-python-ms-latest-nupkg-url) temp-file 'overwrite)
-      (if (file-exists-p lsp-python-ms-dir) (delete-directory lsp-python-ms-dir 'recursive))
+      (url-copy-file (lsp-python-ms-latest-nupkg-url lsp-python-ms-nupkg-channel)
+                     temp-file 'overwrite)
+      (when (file-exists-p lsp-python-ms-dir)
+        (delete-directory lsp-python-ms-dir 'recursive))
       (shell-command (format unzip-script temp-file lsp-python-ms-dir))
-      (if (file-exists-p lsp-python-ms-executable) (chmod lsp-python-ms-executable #o755))
+      (when (file-exists-p lsp-python-ms-executable)
+        (chmod lsp-python-ms-executable #o755))
 
       (message "Downloaded Microsoft Python Language Server!"))))
 
