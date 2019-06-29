@@ -44,12 +44,14 @@
 
 This is the directory containing Microsoft.Python.LanguageServer.dll.")
 
-(defvar lsp-python-ms-cache-dir
-  (directory-file-name (locate-user-emacs-file ".lsp-python/"))
-  "Path to directory where the server will write cache files.
+;; not used since ms-pyls 0.2.92+
+;; see https://github.com/microsoft/vscode-python/blob/master/src/client/activation/languageServer/analysisOptions.ts#L93
+;; (defvar lsp-python-ms-cache-dir
+;;   (directory-file-name (locate-user-emacs-file ".lsp-python/"))
+;;   "Path to directory where the server will write cache files.
 
-If this is nil, the language server will write cache files in a directory
-sibling to the root of every project you visit")
+;; If this is nil, the language server will write cache files in a directory
+;; sibling to the root of every project you visit")
 
 (defun lsp-python-ms--find-dotnet ()
   "Get the path to dotnet, or return `lsp-python-ms-dotnet'."
@@ -66,13 +68,22 @@ sibling to the root of every project you visit")
 You only need to set this if dotnet is not on your path.")
 
 (defvar lsp-python-ms-extra-paths '()
-  "A list of additional paths to search for python packages
+  "A list of additional paths to search for python packages.
 
 This should be a list of paths corresponding to additional python
 library directories you want to search for completions.  Paths
 should be as they are (or would appear) in sys.path.  Paths will
 be prepended to the search path, and so will shadow duplicate
 names in search paths returned by the interpreter.")
+
+(defvar lsp-python-executable-cmd "python"
+  "Command to specify the python command for ms-pyls.
+
+Similar to the `python-shell-interpreter', but used only with `ms-pyls'.
+Useful when there are multiple python versions in system.
+e.g, there are `python2' and `python3', both in system PATH,
+and the default `python' links to python2,
+set as `python3' to let ms-pyls use python 3 environments.")
 
 (defun lsp-python-ms--find-server-executable ()
   "Get path to the python language server executable."
@@ -95,7 +106,7 @@ names in search paths returned by the interpreter.")
 
 The WORKSPACE-ROOT will be prepended to the list of python search
 paths and then the entire list will be json-encoded."
-  (let ((python (executable-find "python"))
+  (let ((python (executable-find lsp-python-executable-cmd))
         (init "from __future__ import print_function; import sys; import json;")
         (ver "print(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));")
         (sp (concat "sys.path.insert(0, '" workspace-root "'); print(json.dumps(sys.path))")))
@@ -130,19 +141,24 @@ directory"
         (lsp-python-ms--get-python-ver-and-syspath workspace-root)
       `(:interpreter
         (:properties (:InterpreterPath
-                      ,(executable-find "python")
+                      ,(executable-find lsp-python-executable-cmd)
                       ;; this database dir will be created if required
-                      :DatabasePath ,(expand-file-name (directory-file-name lsp-python-ms-cache-dir))
+                      ;; :DatabasePath ,(expand-file-name (directory-file-name lsp-python-ms-cache-dir))
                       :Version ,pyver))
         ;; preferredFormat "markdown" or "plaintext"
         ;; experiment to find what works best -- over here mostly plaintext
         :displayOptions (
-                         :preferredFormat "plaintext"
+                         :preferredFormat "markdown"
                          :trimDocumentationLines :json-false
                          :maxDocumentationLineLength 0
                          :trimDocumentationText :json-false
                          :maxDocumentationTextLength 0)
-        :searchPaths ,(vconcat lsp-python-ms-extra-paths (json-read-from-string pysyspath))))))
+        :searchPaths ,(if lsp-python-ms-extra-paths
+                          (vconcat lsp-python-ms-extra-paths nil)
+                        [])
+        :analysisUpdates t
+        :asyncStartup t
+        :typeStubSearchPaths ,(vector (concat lsp-python-ms-dir "Typeshed"))))))
 
 
 (defun lsp-python-ms--filter-nbsp (str)
