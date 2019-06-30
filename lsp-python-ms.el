@@ -128,7 +128,7 @@ With prefix, FORCED to redownload the server."
                               ((executable-find "powershell")
                                "powershell -noprofile -noninteractive \
 -nologo -ex bypass Expand-Archive -path '%s' -dest '%s'")
-                              (t nil))))
+                              (t (error "Unable to unzip")))))
       (message "Downloading Microsoft Python Language Server...")
 
       (url-copy-file (lsp-python-ms-latest-nupkg-url lsp-python-ms-nupkg-channel)
