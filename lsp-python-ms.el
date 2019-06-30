@@ -142,7 +142,10 @@ With prefix, FORCED to redownload the server."
       (message "Downloaded Microsoft Python Language Server!"))))
 
 (defun lsp-python-ms-update-server ()
-  "Update Microsoft Python Language Server."
+  "Update Microsoft Python Language Server.
+
+On Windows, if the server is running, the updating will fail.
+After stopping or killing the process, retry to update."
   (interactive)
   (message "Server update started...")
   (lsp-python-ms-setup t)
