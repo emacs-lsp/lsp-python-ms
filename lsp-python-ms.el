@@ -260,7 +260,7 @@ other handlers. "
   (if (file-exists-p lsp-python-ms-executable)
       lsp-python-ms-executable
     (error (concat "Cannot find Microsoft Python Language Server executable! It's expected to be "
-                   lsp-python-ms-executable)))
+                   lsp-python-ms-executable))))
 
 (defgroup lsp-mspyls nil
   "LSP support for Python, using Microsoft Python Language Server."
