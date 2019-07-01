@@ -128,7 +128,7 @@ With prefix, FORCED to redownload the server."
                               ((executable-find "powershell")
                                "powershell -noprofile -noninteractive \
 -nologo -ex bypass Expand-Archive -path '%s' -dest '%s'")
-                              (t (error "Unable to unzip")))))
+                              (t (error "Unable to unzip! You may need to install the `unzip` executable.")))))
       (message "Downloading Microsoft Python Language Server...")
 
       (url-copy-file (lsp-python-ms-latest-nupkg-url lsp-python-ms-nupkg-channel)
@@ -259,7 +259,8 @@ other handlers. "
 
   (if (file-exists-p lsp-python-ms-executable)
       lsp-python-ms-executable
-    (error "Could find Microsoft python language server")))
+    (error (concat "Cannot find Microsoft Python Language Server executable! It's expected to be "
+                   lsp-python-ms-executable)))
 
 (defgroup lsp-mspyls nil
   "LSP support for Python, using Microsoft Python Language Server."
