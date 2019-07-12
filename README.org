@@ -29,9 +29,8 @@ If you have troubles to download the package, you can also build the server your
    dotnet publish -c Release -r osx-x64   # mac
    #+END_SRC
 
-   Change the value of the ~-r~ flag depending on your architecture and
-   operating system.  See Microsoft's [[https://docs.microsoft.com/en-us/dotnet/core/rid-catalog][Runtime ID Catalog]] for the right
-   value for your system.
+   Change the ~-r~ flag according to your architecture and operating system.
+   See Microsoft's [[https://docs.microsoft.com/en-us/dotnet/core/rid-catalog][Runtime ID Catalog]] for the right value for your system.
 
    Then make the binary executable.
    #+BEGIN_SRC bash
@@ -43,11 +42,11 @@ If you have troubles to download the package, you can also build the server your
 
 3. Set executable to ~lsp-python-ms-executable~.
 
-#+BEGIN_SRC elisp
+   #+BEGIN_SRC elisp
    ;; for executable of language server, if it's not symlinked on your PATH
    (setq lsp-python-ms-executable
          "~/python-language-server/output/bin/Release/osx-x64/publish/Microsoft.Python.LanguageServer")
-#+END_SRC
+   #+END_SRC
 
 For development, you might find it useful to run =cask install=.
 * Credit
