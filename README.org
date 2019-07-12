@@ -1,4 +1,4 @@
-=lsp-mode= client leveraging microsoft's [[https://github.com/Microsoft/python-language-server][python-language-server]]
+=lsp-mode= client leveraging microsoft's [[https://github.com/Microsoft/python-language-server][python-language-server]].
 
 * Installation
 Include ~lsp-python-ms~ in the configuration file:
@@ -43,17 +43,11 @@ If you have troubles to download the package, you can also build the server your
 
 3. Set executable to ~lsp-python-ms-executable~.
 
-   #+BEGIN_SRC elisp
-     ;; for executable of language server, if it's not symlinked on your PATH
-     (setq lsp-python-ms-executable
-           "~/python-language-server/output/bin/Release/osx-x64/publish/Microsoft.Python.LanguageServer")
-   #+END_SRC
-
-   or link it to somewhere on your path, e.g.
-
-   #+BEGIN_SRC shell
-   ln -sf $(git rev-parse --show-toplevel)/output/bin/Release/osx-x64/publish/Microsoft.Python.LanguageServer ~/.local/bin/
-   #+END_SRC
+#+BEGIN_SRC elisp
+   ;; for executable of language server, if it's not symlinked on your PATH
+   (setq lsp-python-ms-executable
+         "~/python-language-server/output/bin/Release/osx-x64/publish/Microsoft.Python.LanguageServer")
+#+END_SRC
 
 For development, you might find it useful to run =cask install=.
 * Credit
