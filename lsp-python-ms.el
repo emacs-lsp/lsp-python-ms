@@ -123,11 +123,11 @@ With prefix, FORCED to redownload the server."
   (unless (and (not forced)
                (file-exists-p lsp-python-ms-executable))
     (let ((temp-file (make-temp-file "mspyls" nil ".zip"))
-          (unzip-script (cond ((executable-find "unzip")
-                               "bash -c 'mkdir -p %2$s && unzip -qq %1$s -d %2$s'")
-                              ((executable-find "powershell")
+          (unzip-script (cond ((executable-find "powershell")
                                "powershell -noprofile -noninteractive \
 -nologo -ex bypass Expand-Archive -path '%s' -dest '%s'")
+                              ((executable-find "unzip")
+                               "bash -c 'mkdir -p %2$s && unzip -qq %1$s -d %2$s'")
                               (t (error "Unable to unzip! You may need to install the `unzip` executable.")))))
       (message "Downloading Microsoft Python Language Server...")
 
