@@ -13,7 +13,7 @@ A minimal ~use-package~ initialization might be:
     :ensure t
     :hook (python-mode . (lambda ()
                             (require 'lsp-python-ms)
-                            (lsp)))  ; or lsp-deferred
+                            (lsp))))  ; or lsp-deferred
 #+END_SRC
 
 Normally the [[https://github.com/Microsoft/python-language-server][python-language-server]] will be downloaded automatically if it doesn't
