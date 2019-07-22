@@ -162,10 +162,11 @@ paths and then the entire list will be json-encoded."
   (let ((python (executable-find lsp-python-executable-cmd))
         (init "from __future__ import print_function; import sys; import json;")
         (ver "print(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));")
-        (sp (concat "sys.path.insert(0, '" workspace-root "'); print(json.dumps(sys.path))")))
+        (sp (concat "sys.path.insert(0, '" workspace-root "'); print(json.dumps(sys.path));"))
+        (ex "print(sys.executable)"))
     (with-temp-buffer
-      (call-process python nil t nil "-c" (concat init ver sp))
-      (cl-subseq (split-string (buffer-string) "\n") 0 2))))
+      (call-process python nil t nil "-c" (concat init ver sp ex))
+      (cl-subseq (split-string (buffer-string) "\n") 0 3))))
 
 (defun lsp-python-ms--workspace-root ()
   "Get the path of the root of the current workspace.
@@ -190,11 +191,11 @@ lsp-workspace-root function that finds the current buffer's
 workspace root.  If nothing works, default to the current file's
 directory"
   (let ((workspace-root (if workspace (lsp--workspace-root workspace) (lsp-python-ms--workspace-root))))
-    (cl-destructuring-bind (pyver _pysyspath)
+    (cl-destructuring-bind (pyver _pysyspath _pyintpath)
         (lsp-python-ms--get-python-ver-and-syspath workspace-root)
       `(:interpreter
         (:properties (:InterpreterPath
-                      ,(executable-find lsp-python-executable-cmd)
+                      ,_pyintpath
                       ;; this database dir will be created if required
                       ;; :DatabasePath ,(expand-file-name (directory-file-name lsp-python-ms-cache-dir))
                       :Version ,pyver))
@@ -225,16 +226,16 @@ directory"
   "Handle the python/languageServerStarted message.
 
 WORKSPACE is just used for logging and _PARAMS is unused."
-  (lsp-workspace-status "::Started" workspace)
-  (message "Python language server started"))
+   (lsp-workspace-status "::Started" workspace)
+   (message "Python language server started"))
 
 (defun lsp-python-ms--client-initialized (client)
-  "Callback to register and configure client after it's initialized.
+   "Callback to register and configure client after it's initialized.
 
 After CLIENT is initialized, this function is called to configure
 other handlers. "
-  (lsp-client-on-notification client "python/languageServerStarted"
-                              #'lsp-python-ms--language-server-started-callback)
+   (lsp-client-on-notification client "python/languageServerStarted"
+                               #'lsp-python-ms--language-server-started-callback)
   (lsp-client-on-notification client "telemetry/event" #'ignore))
 
 ;; this gets called when we do lsp-describe-thing-at-point
