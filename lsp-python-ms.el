@@ -176,7 +176,7 @@ or projectile, or just return `default-directory'."
   (cond
    ((and (fboundp #'lsp-workspace-root) (lsp-workspace-root)))
    ((fboundp #'ffip-get-project-root-directory) (ffip-get-project-root-directory))
-   ((fboundp #'projectile-project-root)) (projectile-project-root)
+   ((fboundp #'projectile-project-root) (projectile-project-root))
    (t default-directory)))
 
 ;; I based most of this on the vs.code implementation:
