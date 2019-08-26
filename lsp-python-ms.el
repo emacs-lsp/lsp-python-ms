@@ -160,7 +160,7 @@ After stopping or killing the process, retry to update."
 The WORKSPACE-ROOT will be prepended to the list of python search
 paths and then the entire list will be json-encoded."
   (let ((python (executable-find lsp-python-executable-cmd))
-        (init "from __future__ import print_function; import sys; import json;")
+        (init "from __future__ import print_function; import sys; sys.path = list(filter(lambda p: p != '', sys.path)); import json;")
         (ver "print(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));")
         (sp (concat "sys.path.insert(0, '" workspace-root "'); print(json.dumps(sys.path))")))
     (with-temp-buffer
