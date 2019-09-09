@@ -203,11 +203,11 @@ lsp-workspace-root function that finds the current buffer's
 workspace root.  If nothing works, default to the current file's
 directory"
   (let ((workspace-root (if workspace (lsp--workspace-root workspace) (lsp-python-ms--workspace-root))))
-    (cl-destructuring-bind (pyver _pysyspath _pyintpath)
+    (cl-destructuring-bind (pyver _pysyspath pyintpath)
         (lsp-python-ms--get-python-ver-and-syspath workspace-root)
       `(:interpreter
         (:properties (:InterpreterPath
-                      ,_pyintpath
+                      ,pyintpath
                       ;; this database dir will be created if required
                       ;; :DatabasePath ,(expand-file-name (directory-file-name lsp-python-ms-cache-dir))
                       :Version ,pyver))
