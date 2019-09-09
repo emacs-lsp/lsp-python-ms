@@ -36,49 +36,61 @@
 (require 'projectile nil 'noerror)
 (require 'find-file-in-project nil 'noerror)
 
+;; Group declaration
+(defgroup lsp-python-ms nil
+  "LSP support for python using the microsoft python language server."
+  :group 'lsp-mode
+  :tag "Language Server"
+  :link '(url-link "https://github.com/Microsoft/python-language-server"))
+
 ;; forward declare variable
 (defvar lsp-render-markdown-markup-content)
 
-(defvar lsp-python-ms-dir (expand-file-name "mspyls/" user-emacs-directory)
+(defcustom lsp-python-ms-dir (expand-file-name "mspyls/" user-emacs-directory)
   "Path to language server directory.
 
-This is the directory containing Microsoft.Python.LanguageServer.dll.")
+This is the directory containing Microsoft.Python.LanguageServer.dll."
+  :type 'directory)
 
 ;; not used since ms-pyls 0.2.92+
 ;; see https://github.com/microsoft/vscode-python/blob/master/src/client/activation/languageServer/analysisOptions.ts#L93
-;; (defvar lsp-python-ms-cache-dir
+;; (defcustom lsp-python-ms-cache-dir
 ;;   (directory-file-name (locate-user-emacs-file ".lsp-python/"))
 ;;   "Path to directory where the server will write cache files.
 
 ;; If this is nil, the language server will write cache files in a directory
 ;; sibling to the root of every project you visit")
 
-(defvar lsp-python-ms-extra-paths '()
+(defcustom lsp-python-ms-extra-paths '()
   "A list of additional paths to search for python packages.
 
 This should be a list of paths corresponding to additional python
 library directories you want to search for completions.  Paths
 should be as they are (or would appear) in sys.path.  Paths will
 be prepended to the search path, and so will shadow duplicate
-names in search paths returned by the interpreter.")
+names in search paths returned by the interpreter."
+  :type '(repeat directory))
 
-(defvar lsp-python-executable-cmd "python"
+(defcustom lsp-python-executable-cmd "python"
   "Command to specify the python command for ms-pyls.
 
 Similar to the `python-shell-interpreter', but used only with `ms-pyls'.
 Useful when there are multiple python versions in system.
 e.g, there are `python2' and `python3', both in system PATH,
 and the default `python' links to python2,
-set as `python3' to let ms-pyls use python 3 environments.")
+set as `python3' to let ms-pyls use python 3 environments."
+  :type 'string)
 
-(defvar lsp-python-ms-executable (concat lsp-python-ms-dir
+(defcustom lsp-python-ms-executable (concat lsp-python-ms-dir
                                          "Microsoft.Python.LanguageServer"
                                          (and (eq system-type 'windows-nt) ".exe"))
-  "Path to Microsoft.Python.LanguageServer.exe.")
+  "Path to Microsoft.Python.LanguageServer.exe."
+  :type '(file :must-match t))
 
-(defvar lsp-python-ms-nupkg-channel "stable"
+(defcustom lsp-python-ms-nupkg-channel "stable"
   "The channel of nupkg for Microsoft Python Language Server:
-stable, beta or daily.")
+stable, beta or daily."
+  :type 'string)
 
 (defun lsp-python-ms-latest-nupkg-url (&optional channel)
   "Get the nupkg url of the latest Microsoft Python Language Server."
