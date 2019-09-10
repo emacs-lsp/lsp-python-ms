@@ -40,17 +40,15 @@
 (defvar lsp-render-markdown-markup-content)
 
 ;; Group declaration
-(defgroup lsp-mspyls nil
+(defgroup lsp-python-ms nil
   "LSP support for python using the Microsoft Python Language Server."
   :group 'lsp-mode
   :link '(url-link "https://github.com/Microsoft/python-language-server"))
 
 (defcustom lsp-python-ms-dir (expand-file-name "mspyls/" user-emacs-directory)
-  "Path to language server directory.
-
-This is the directory containing Microsoft.Python.LanguageServer.dll."
+  "The directory of the Microsoft Python Language Server."
   :type 'directory
-  :group 'lsp-mspyls)
+  :group 'lsp-python-ms)
 
 ;; not used since ms-pyls 0.2.92+
 ;; see https://github.com/microsoft/vscode-python/blob/master/src/client/activation/languageServer/analysisOptions.ts#L93
@@ -70,48 +68,48 @@ should be as they are (or would appear) in sys.path.  Paths will
 be prepended to the search path, and so will shadow duplicate
 names in search paths returned by the interpreter."
   :type '(repeat directory)
-  :group 'lsp-mspyls)
+  :group 'lsp-python-ms)
 
-(defcustom lsp-python-executable-cmd "python"
-  "Command to specify the python command for ms-pyls.
+(defcustom lsp-python-ms-python-executable-cmd "python"
+  "Command to specify the Python command for the Microsoft Python Language Server.
 
-Similar to the `python-shell-interpreter', but used only with `ms-pyls'.
+Similar to the `python-shell-interpreter', but used only with mspyls.
 Useful when there are multiple python versions in system.
 e.g, there are `python2' and `python3', both in system PATH,
 and the default `python' links to python2,
 set as `python3' to let ms-pyls use python 3 environments."
   :type 'string
-  :group 'lsp-mspyls)
+  :group 'lsp-python-ms)
 
 (defcustom lsp-python-ms-executable (concat lsp-python-ms-dir
                                             "Microsoft.Python.LanguageServer"
                                             (and (eq system-type 'windows-nt) ".exe"))
-  "Path to Microsoft.Python.LanguageServer.exe."
+  "Path to the Microsoft Python LanguageServer binary."
   :type '(file :must-match t)
-  :group 'lsp-mspyls)
+  :group 'lsp-python-ms)
 
 (defcustom lsp-python-ms-nupkg-channel "stable"
-  "The channel of nupkg for Microsoft Python Language Server:
+  "The channel of nupkg for the Microsoft Python Language Server:
 stable, beta or daily."
   :type 'string
-  :group 'lsp-mspyls)
+  :group 'lsp-python-ms)
 
 ;; See https://github.com/microsoft/python-language-server for more diagnostics
-(defcustom lsp-mspyls-errors ["unknown-parameter-name"
-                              "undefined-variable"
-                              "parameter-missing"
-                              "positional-argument-after-keyword"
-                              "too-many-function-arguments"]
-  "Microsoft Python LSP Error types."
+(defcustom lsp-python-ms-errors ["unknown-parameter-name"
+                                 "undefined-variable"
+                                 "parameter-missing"
+                                 "positional-argument-after-keyword"
+                                 "too-many-function-arguments"]
+  "Microsoft Python Language Server Error types."
   :type 'vector
-  :group 'lsp-mspyls)
+  :group 'lsp-python-ms)
 
-(defcustom lsp-mspyls-warnings ["unresolved-import"
-                                "parameter-already-specified"
-                                "too-many-positional-arguments-before-star"]
-  "Microsoft Python LSP Warning types."
+(defcustom lsp-python-ms-warnings ["unresolved-import"
+                                   "parameter-already-specified"
+                                   "too-many-positional-arguments-before-star"]
+  "Microsoft Python Language Server Warning types."
   :type 'vector
-  :group 'lsp-mspyls)
+  :group 'lsp-python-ms)
 
 
 (defun lsp-python-ms-latest-nupkg-url (&optional channel)
@@ -193,7 +191,7 @@ After stopping or killing the process, retry to update."
 
 The WORKSPACE-ROOT will be prepended to the list of python search
 paths and then the entire list will be json-encoded."
-  (let ((python (executable-find lsp-python-executable-cmd))
+  (let ((python (executable-find lsp-python-ms-python-executable-cmd))
         (init "from __future__ import print_function; import sys; sys.path = list(filter(lambda p: p != '', sys.path)); import json;")
         (ver "print(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));")
         (sp (concat "sys.path.insert(0, '" workspace-root "'); print(json.dumps(sys.path));"))
@@ -297,8 +295,8 @@ other handlers. "
     (error (concat "Cannot find Microsoft Python Language Server executable! It's expected to be "
                    lsp-python-ms-executable))))
 
-(lsp-register-custom-settings '(("python.analysis.errors" lsp-mspyls-errors)))
-(lsp-register-custom-settings '(("python.analysis.warnings" lsp-mspyls-warnings)))
+(lsp-register-custom-settings '(("python.analysis.errors" lsp-python-ms-errors)))
+(lsp-register-custom-settings '(("python.analysis.warnings" lsp-python-ms-warnings)))
 
 (lsp-register-client
  (make-lsp-client
