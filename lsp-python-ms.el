@@ -317,6 +317,6 @@ other handlers. "
                     (with-lsp-workspace workspace
                       (lsp--set-configuration (lsp-configuration-section "python"))))))
 
-(provide 'lsp-mspyls)
+(provide 'lsp-python-ms)
 
 ;;; lsp-python-ms.el ends here
