@@ -3,7 +3,7 @@
 * Installation
 Include ~lsp-python-ms~ in the configuration file:
 #+BEGIN_SRC emacs-lisp
-(require lsp-python-ms)
+(require 'lsp-python-ms)
 (add-hook 'python-mode #'lsp) ; or lsp-deferred
 #+END_SRC
 
