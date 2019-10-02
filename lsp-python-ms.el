@@ -36,7 +36,11 @@
 (require 'projectile nil 'noerror)
 (require 'find-file-in-project nil 'noerror)
 
-;; forward declare variable
+;; Forward declare functions
+(declare-function ffip-get-project-root-directory 'ffip)
+(declare-function lsp-client-on-notification 'lsp-mode)
+
+;; Forward declare variable
 (defvar lsp-render-markdown-markup-content)
 
 ;; Group declaration
@@ -185,8 +189,9 @@ With prefix, FORCED to redownload the server."
                                (progn
                                  (message "Extracting Microsoft Python Language Server...done")
                                  (when (file-exists-p lsp-python-ms-executable)
-                                   ;; Make the binary executable, and revert the buffer
+                                   ;; Make the binary executable
                                    (chmod lsp-python-ms-executable #o755)
+                                   ;; Revert the buffer to start LSP in case it wasn't
                                    (revert-buffer t t)))
                              (message "Failed to extract Microsoft Python Language Server: %d" status)))))
                       ) `(,download-reporter))
