@@ -160,18 +160,39 @@ With prefix, FORCED to redownload the server."
 -nologo -ex bypass Expand-Archive -path '%s' -dest '%s'")
                               ((executable-find "unzip")
                                "bash -c 'mkdir -p %2$s && unzip -qq %1$s -d %2$s'")
-                              (t (error "Unable to unzip! You may need to install the `unzip` executable.")))))
-      (message "Downloading Microsoft Python Language Server...")
+                              (t (error "Unable to unzip! You may need to install the `unzip` executable."))))
+          (download-reporter (make-progress-reporter
+                              "Downloading Microsoft Python Language Server..."
+                              0  100)))
+      (url-retrieve (lsp-python-ms-latest-nupkg-url lsp-python-ms-nupkg-channel)
+                    (lambda (_data bar)
+                      ;; Skip http header
+                      (re-search-forward "\r?\n\r?\n")
+                      (write-region (point) (point-max) temp-file)
 
-      (url-copy-file (lsp-python-ms-latest-nupkg-url lsp-python-ms-nupkg-channel)
-                     temp-file 'overwrite)
-      (when (file-exists-p lsp-python-ms-dir)
-        (delete-directory lsp-python-ms-dir 'recursive))
-      (shell-command (format unzip-script temp-file lsp-python-ms-dir))
-      (when (file-exists-p lsp-python-ms-executable)
-        (chmod lsp-python-ms-executable #o755))
+                      (progress-reporter-done bar)
 
-      (message "Downloaded Microsoft Python Language Server!"))))
+                      (message "Extracting Microsoft Python Language Server...")
+                      (when (file-exists-p lsp-python-ms-dir)
+                        (delete-directory lsp-python-ms-dir 'recursive))
+
+                      (set-process-sentinel
+                       (start-process-shell-command "extract-mspyls" nil
+                                                    (format unzip-script temp-file lsp-python-ms-dir))
+                       (lambda (proc _)
+                         (let ((status (process-exit-status proc)))
+                           (if (= 0 status)
+                               (progn
+                                 (message "Extracting Microsoft Python Language Server...done")
+                                 (when (file-exists-p lsp-python-ms-executable)
+                                   ;; Make the binary executable, and revert the buffer
+                                   (chmod lsp-python-ms-executable #o755)
+                                   (revert-buffer t t)))
+                             (message "Failed to extract Microsoft Python Language Server: %d" status)))))
+                      ) `(,download-reporter))
+      (dotimes (k 100)
+        (sit-for 0.1)
+        (progress-reporter-update download-reporter k)))))
 
 (defun lsp-python-ms-update-server ()
   "Update Microsoft Python Language Server.
@@ -179,9 +200,7 @@ With prefix, FORCED to redownload the server."
 On Windows, if the server is running, the updating will fail.
 After stopping or killing the process, retry to update."
   (interactive)
-  (message "Server update started...")
-  (lsp-python-ms-setup t)
-  (message "Server update finished..."))
+  (lsp-python-ms-setup t))
 
 ;; it's crucial that we send the correct Python version to MS PYLS,
 ;; else it returns no docs in many cases furthermore, we send the
