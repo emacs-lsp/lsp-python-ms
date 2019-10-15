@@ -252,6 +252,7 @@ lsp-workspace-root function that finds the current buffer's
 workspace root.  If nothing works, default to the current file's
 directory"
   (let ((workspace-root (if workspace (lsp--workspace-root workspace) (lsp-python-ms--workspace-root))))
+    (lsp-python-ms--parse-dot-env workspace-root)
     (cl-destructuring-bind (pyver _pysyspath pyintpath)
         (lsp-python-ms--get-python-ver-and-syspath workspace-root)
       `(:interpreter
@@ -282,6 +283,21 @@ directory"
       (setq rx (concat rx "\\|\r")))
     (when str
       (replace-regexp-in-string rx " " str))))
+
+(defun lsp-python-ms--parse-dot-env (root &optional envvar)
+  "Set environment variable (default PYTHONPATH) from .env file if this file exists in the project root."
+  (let* ((envvar (or envvar "PYTHONPATH"))
+         (file (concat (file-name-as-directory root) ".env"))
+         (rx (concat "^[:blank:]*" envvar "[:blank:]*=[:blank:]*"))
+         val)
+    (when (file-exists-p file)
+      (with-temp-buffer
+        (insert-file-contents file)
+        (keep-lines rx (point-min) (point-max))
+        (when (string-match (concat rx "\\(.*\\)") (buffer-string))
+          (setq val (match-string 1 (buffer-string)))
+          (unless (string-empty-p val)
+            (setenv envvar val)))))))
 
 (defun lsp-python-ms--language-server-started-callback (workspace _params)
   "Handle the python/languageServerStarted message.
