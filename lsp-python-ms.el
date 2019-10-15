@@ -284,17 +284,17 @@ directory"
 (defun lsp-python-ms--parse-dot-env (root &optional envvar)
   "Set environment variable (default PYTHONPATH) from .env file if this file exists in the project root."
   (let* ((envvar (or envvar "PYTHONPATH"))
-	 (file (concat (file-name-as-directory root) ".env"))
-	 (rx (concat "^[:blank:]*" envvar "[:blank:]*=[:blank:]*"))
-	 val)
+         (file (concat (file-name-as-directory root) ".env"))
+         (rx (concat "^[:blank:]*" envvar "[:blank:]*=[:blank:]*"))
+         val)
     (when (file-exists-p file)
       (with-temp-buffer
-	(insert-file-contents file)
-	(keep-lines rx (point-min) (point-max))
-	(when (string-match (concat rx "\\(.*\\)") (buffer-string))
-	  (setq val (match-string 1 (buffer-string)))
-	  (when (not (string-empty-p val))
-	    (setenv envvar val)))))))
+        (insert-file-contents file)
+        (keep-lines rx (point-min) (point-max))
+        (when (string-match (concat rx "\\(.*\\)") (buffer-string))
+          (setq val (match-string 1 (buffer-string)))
+          (unless (string-empty-p val)
+            (setenv envvar val)))))))
 
 (defun lsp-python-ms--language-server-started-callback (workspace _params)
   "Handle the python/languageServerStarted message.
