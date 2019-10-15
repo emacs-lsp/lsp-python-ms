@@ -115,6 +115,9 @@ stable, beta or daily."
   :type 'vector
   :group 'lsp-python-ms)
 
+(defconst lsp-python-ms--base-url "https://pvsc.blob.core.windows.net"
+  "The base url to get nupkg package.
+The alternative is `https://pvsc.azureedge.net'")
 
 (defun lsp-python-ms-latest-nupkg-url (&optional channel)
   "Get the nupkg url of the latest Microsoft Python Language Server."
@@ -123,8 +126,8 @@ stable, beta or daily."
       (error (format "Unknown channel: %s" channel)))
     (with-current-buffer
         (url-retrieve-synchronously
-         (format "https://pvsc.blob.core.windows.net/python-language-server-%s\
-?restype=container&comp=list&prefix=Python-Language-Server-%s-x64"
+         (format "%s/python-language-server-%s?restype=container&comp=list&prefix=Python-Language-Server-%s-x64"
+                 lsp-python-ms--base-url
                  channel
                  (cond ((eq system-type 'darwin)  "osx")
                        ((eq system-type 'gnu/linux) "linux")
