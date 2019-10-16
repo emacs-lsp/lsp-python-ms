@@ -106,14 +106,14 @@ stable, beta or daily."
                                  "positional-argument-after-keyword"
                                  "too-many-function-arguments"]
   "Microsoft Python Language Server Error types."
-  :type '(vector string)
+  :type '(vector string string string string string)
   :group 'lsp-python-ms)
 
 (defcustom lsp-python-ms-warnings ["unresolved-import"
                                    "parameter-already-specified"
                                    "too-many-positional-arguments-before-star"]
   "Microsoft Python Language Server Warning types."
-  :type '(vector string)
+  :type '(vector string string string)
   :group 'lsp-python-ms)
 
 (defconst lsp-python-ms--base-url "https://pvsc.blob.core.windows.net"
