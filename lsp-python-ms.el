@@ -72,8 +72,8 @@ should be as they are (or would appear) in sys.path.  Paths will
 be prepended to the search path, and so will shadow duplicate
 names in search paths returned by the interpreter."
   :type '(repeat directory)
+  :local t
   :group 'lsp-python-ms)
-(make-variable-buffer-local 'lsp-python-ms-extra-paths)
 
 (defcustom lsp-python-ms-python-executable-cmd "python"
   "Command to specify the Python command for the Microsoft Python Language Server.
