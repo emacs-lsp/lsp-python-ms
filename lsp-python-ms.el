@@ -242,7 +242,7 @@ After stopping or killing the process, retry to update."
 (defun lsp-python-ms-locate-python (root)
   "Look for virtual environments local to the workspace"
   (let* ((venv (locate-dominating-file default-directory "venv/"))
-         (sys-python (executable-find lsp-python-executable-cmd))
+         (sys-python (executable-find lsp-python-ms-python-executable-cmd))
          (venv-python (expand-file-name "venv/bin/python" venv)))
     (cond
      ((and venv (file-executable-p venv-python)) venv-python)
@@ -256,6 +256,7 @@ After stopping or killing the process, retry to update."
 The WORKSPACE-ROOT will be prepended to the list of python search
 paths and then the entire list will be json-encoded."
   (let ((python (lsp-python-ms-locate-python workspace-root))
+        (default-directory workspace-root)
         (init "from __future__ import print_function; import sys; sys.path = list(filter(lambda p: p != '', sys.path)); import json;")
         (ver "print(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));")
         (sp (concat "sys.path.insert(0, '" workspace-root "'); print(json.dumps(sys.path));"))
