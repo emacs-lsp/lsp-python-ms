@@ -143,6 +143,16 @@ stable, beta or daily."
   "The base url to get nupkg package.
 The alternative is `https://pvsc.azureedge.net'")
 
+(defcustom lsp-python-ms-log-level "Error"
+  "Log Level"
+  :type 'string
+  :group 'lsp-python-ms
+  :options (list "Trace"
+                 "Info"
+                 "Information"
+                 "Error"
+                 "Warning"))
+
 (defun lsp-python-ms-latest-nupkg-url (&optional channel)
   "Get the nupkg url of the latest Microsoft Python Language Server."
   (let ((channel (or channel "stable")))
@@ -305,7 +315,7 @@ directory"
       `(:interpreter
         (:properties (
                       :InterpreterPath ,pyintpath
-                      :UseDefaultDatabase :json-true
+                      :UseDefaultDatabase t
                       :Version ,pyver))
         ;; preferredFormat "markdown" or "plaintext"
         ;; experiment to find what works best -- over here mostly plaintext
@@ -319,6 +329,7 @@ directory"
                         _pysyspath)
         :analysisUpdates t
         :asyncStartup t
+        :logLevel ,lsp-python-ms-log-level
         :typeStubSearchPaths ,(vector (concat lsp-python-ms-dir "Typeshed"))))))
 
 (defun lsp-python-ms--filter-nbsp (str)
