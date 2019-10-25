@@ -258,12 +258,20 @@ paths and then the entire list will be json-encoded."
   (let ((python (lsp-python-ms-locate-python workspace-root))
         (default-directory workspace-root)
         (init "from __future__ import print_function; import sys; sys.path = list(filter(lambda p: p != '', sys.path)); import json;")
-        (ver "print(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));")
-        (sp (concat "sys.path.insert(0, '" workspace-root "'); print(json.dumps(sys.path));"))
-        (ex "print(sys.executable)"))
+        (ver "v=(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));")
+        (sp (concat "sys.path.insert(0, '" workspace-root "'); p=sys.path;"))
+        (ex "e=sys.executable;")
+        (val "print(json.dumps({\"version\":v,\"paths\":p,\"executable\":e}))"))
     (with-temp-buffer
-      (call-process python nil t nil "-c" (concat init ver sp ex))
-      (cl-subseq (split-string (buffer-string) "\n") 0 3))))
+      (call-process python nil t nil "-c" (concat init ver sp ex val))
+      (let* ((json-array-type 'vector)
+             (json-key-type 'string)
+             (json-object-type 'hash-table)
+             (json-string (buffer-string))
+             (json-hash (json-read-from-string json-string)))
+        (list (gethash "version" json-hash)
+              (gethash "paths" json-hash)
+              (gethash "executable" json-hash))))))
 
 (defun lsp-python-ms--workspace-root ()
   "Get the path of the root of the current workspace.
@@ -295,10 +303,9 @@ directory"
     (cl-destructuring-bind (pyver _pysyspath pyintpath)
         (lsp-python-ms--get-python-ver-and-syspath workspace-root)
       `(:interpreter
-        (:properties (:InterpreterPath
-                      ,pyintpath
-                      ;; this database dir will be created if required
-                      ;; :DatabasePath ,(expand-file-name (directory-file-name lsp-python-ms-cache-dir))
+        (:properties (
+                      :InterpreterPath ,pyintpath
+                      :UseDefaultDatabase :json-true
                       :Version ,pyver))
         ;; preferredFormat "markdown" or "plaintext"
         ;; experiment to find what works best -- over here mostly plaintext
@@ -309,7 +316,7 @@ directory"
                          :maxDocumentationTextLength 0)
         :searchPaths ,(if lsp-python-ms-extra-paths
                           (vconcat lsp-python-ms-extra-paths nil)
-                        [])
+                        _pysyspath)
         :analysisUpdates t
         :asyncStartup t
         :typeStubSearchPaths ,(vector (concat lsp-python-ms-dir "Typeshed"))))))
