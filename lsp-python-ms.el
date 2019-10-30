@@ -125,6 +125,16 @@ stable, beta or daily."
   :type 'lsp-string-vector
   :group 'lsp-python-ms)
 
+(defcustom lsp-python-ms-information []
+  "Microsoft Python Language Server Information types."
+  :type 'lsp-string-vector
+  :group 'lsp-python-ms)
+
+(defcustom lsp-python-ms-disabled []
+  "Microsoft Python Language Server Disabled types."
+  :type 'lsp-string-vector
+  :group 'lsp-python-ms)
+
 (defconst lsp-python-ms--base-url "https://pvsc.blob.core.windows.net"
   "The base url to get nupkg package.
 The alternative is `https://pvsc.azureedge.net'")
@@ -353,6 +363,8 @@ other handlers. "
 (lsp-register-custom-settings '(("python.analysis.cachingLevel" lsp-python-ms-cache)))
 (lsp-register-custom-settings '(("python.analysis.errors" lsp-python-ms-errors)))
 (lsp-register-custom-settings '(("python.analysis.warnings" lsp-python-ms-warnings)))
+(lsp-register-custom-settings '(("python.analysis.information" lsp-python-ms-information)))
+(lsp-register-custom-settings '(("python.analysis.disabled" lsp-python-ms-disabled)))
 
 (lsp-register-client
  (make-lsp-client
