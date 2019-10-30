@@ -360,11 +360,13 @@ other handlers. "
     (error (concat "Cannot find Microsoft Python Language Server executable! It's expected to be "
                    lsp-python-ms-executable))))
 
-(lsp-register-custom-settings '(("python.analysis.cachingLevel" lsp-python-ms-cache)))
-(lsp-register-custom-settings '(("python.analysis.errors" lsp-python-ms-errors)))
-(lsp-register-custom-settings '(("python.analysis.warnings" lsp-python-ms-warnings)))
-(lsp-register-custom-settings '(("python.analysis.information" lsp-python-ms-information)))
-(lsp-register-custom-settings '(("python.analysis.disabled" lsp-python-ms-disabled)))
+(lsp-register-custom-settings
+ '(("python.analysis.cachingLevel" lsp-python-ms-cache)
+   ("python.analysis.errors" lsp-python-ms-errors)
+   ("python.analysis.warnings" lsp-python-ms-warnings)
+   ("python.analysis.information" lsp-python-ms-information)
+   ("python.analysis.disabled" lsp-python-ms-disabled)
+   ("python.analysis.autoSearchPaths" (> (length lsp-python-ms-extra-paths) 0) t)))
 
 (lsp-register-client
  (make-lsp-client
