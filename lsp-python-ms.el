@@ -189,14 +189,14 @@ With prefix, FORCED to redownload the server."
                                                     (format unzip-script temp-file lsp-python-ms-dir))
                        (lambda (proc _)
                          (let ((status (process-exit-status proc)))
-                           (if (= 0 status)
+                           (if (and (= 0 status)
+                                    (file-exists-p lsp-python-ms-executable))
                                (progn
                                  (message "Extracting Microsoft Python Language Server...done")
-                                 (when (file-exists-p lsp-python-ms-executable)
-                                   ;; Make the binary executable
-                                   (chmod lsp-python-ms-executable #o755)
-                                   ;; Revert the buffer to start LSP in case it wasn't
-                                   (revert-buffer t t)))
+                                 ;; Make the binary executable
+                                 (chmod lsp-python-ms-executable #o755)
+                                 ;; Start LSP if need
+                                 (when lsp-mode (lsp)))
                              (message "Failed to extract Microsoft Python Language Server: %d" status)))))
                       ) `(,download-reporter))
       (dotimes (k 100)
