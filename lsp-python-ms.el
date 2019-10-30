@@ -99,6 +99,15 @@ stable, beta or daily."
   :type 'string
   :group 'lsp-python-ms)
 
+;; See https://github.com/microsoft/python-language-server/blob/master/src/Analysis/Ast/Impl/Definitions/AnalysisOptions.cs
+(defcustom lsp-python-ms-cache "Library"
+  "The cache level of analysis for Microsoft Python Language Server."
+  :type '(choice
+          (const "None")
+          (const "System")
+          (const "Library"))
+  :group 'lsp-python-ms)
+
 ;; See https://github.com/microsoft/python-language-server for more diagnostics
 (defcustom lsp-python-ms-errors ["unknown-parameter-name"
                                  "undefined-variable"
@@ -341,6 +350,7 @@ other handlers. "
     (error (concat "Cannot find Microsoft Python Language Server executable! It's expected to be "
                    lsp-python-ms-executable))))
 
+(lsp-register-custom-settings '(("python.analysis.cachingLevel" lsp-python-ms-cache)))
 (lsp-register-custom-settings '(("python.analysis.errors" lsp-python-ms-errors)))
 (lsp-register-custom-settings '(("python.analysis.warnings" lsp-python-ms-warnings)))
 
