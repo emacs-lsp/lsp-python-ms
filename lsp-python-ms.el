@@ -371,7 +371,7 @@ other handlers. "
    ("python.analysis.warnings" lsp-python-ms-warnings)
    ("python.analysis.information" lsp-python-ms-information)
    ("python.analysis.disabled" lsp-python-ms-disabled)
-   ("python.analysis.autoSearchPaths" ,(> (length lsp-python-ms-extra-paths) 0) t)))
+   ("python.analysis.autoSearchPaths" ,(<= (length lsp-python-ms-extra-paths) 0) t)))
 
 (lsp-register-client
  (make-lsp-client
