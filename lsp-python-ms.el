@@ -109,12 +109,18 @@ stable, beta or daily."
   :group 'lsp-python-ms)
 
 ;; See https://github.com/microsoft/python-language-server for more diagnostics
-(defcustom lsp-python-ms-errors []
+(defcustom lsp-python-ms-errors ["unknown-parameter-name"
+                                 "undefined-variable"
+                                 "parameter-missing"
+                                 "positional-argument-after-keyword"
+                                 "too-many-function-arguments"]
   "Microsoft Python Language Server Error types."
   :type 'lsp-string-vector
   :group 'lsp-python-ms)
 
-(defcustom lsp-python-ms-warnings []
+(defcustom lsp-python-ms-warnings ["unresolved-import"
+                                   "parameter-already-specified"
+                                   "too-many-positional-arguments-before-star"]
   "Microsoft Python Language Server Warning types."
   :type 'lsp-string-vector
   :group 'lsp-python-ms)
