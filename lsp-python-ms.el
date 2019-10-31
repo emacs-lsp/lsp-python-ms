@@ -100,7 +100,7 @@ stable, beta or daily."
   :group 'lsp-python-ms)
 
 ;; See https://github.com/microsoft/python-language-server/blob/master/src/Analysis/Ast/Impl/Definitions/AnalysisOptions.cs
-(defcustom lsp-python-ms-cache "Library"
+(defcustom lsp-python-ms-cache "None"
   "The cache level of analysis for Microsoft Python Language Server."
   :type '(choice
           (const "None")
