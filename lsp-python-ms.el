@@ -360,6 +360,9 @@ other handlers. "
 (advice-add 'lsp-ui-sideline--format-info
             :filter-return #'lsp-python-ms--filter-nbsp)
 
+(defun lsp-python-ms--log-progress (_workspace params)
+  (lsp-log (car params)))
+
 (defun lsp-python-ms--command-string ()
   "Return the command to start the server."
   ;; Try to download server if it doesn't exists
@@ -377,7 +380,7 @@ other handlers. "
    ("python.analysis.warnings" lsp-python-ms-warnings)
    ("python.analysis.information" lsp-python-ms-information)
    ("python.analysis.disabled" lsp-python-ms-disabled)
-   ("python.analysis.autoSearchPaths" ,(> (length lsp-python-ms-extra-paths) 0) t)))
+   ("python.analysis.autoSearchPaths" ,(<= (length lsp-python-ms-extra-paths) 0) t)))
 
 (lsp-register-client
  (make-lsp-client
@@ -389,7 +392,7 @@ other handlers. "
   :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started-callback)
                                  ("telemetry/event" 'ignore)
                                  ;; TODO handle this more gracefully
-                                 ("python/reportProgress" 'ignore)
+                                 ("python/reportProgress" 'lsp-python-ms--log-progress)
                                  ("python/beginProgress" 'ignore)
                                  ("python/endProgress" 'ignore))
   :initialized-fn (lambda (workspace)
