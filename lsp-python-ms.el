@@ -354,7 +354,7 @@ other handlers. "
 (advice-add 'lsp-ui-sideline--format-info
             :filter-return #'lsp-python-ms--filter-nbsp)
 
-(defun lsp-python-ms--log-progress (workspace params)
+(defun lsp-python-ms--log-progress (_workspace params)
   (lsp-log (car params)))
 
 (defun lsp-python-ms--command-string ()
