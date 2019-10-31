@@ -355,6 +355,7 @@ other handlers. "
             :filter-return #'lsp-python-ms--filter-nbsp)
 
 (defun lsp-python-ms--log-progress (_workspace params)
+  "Log progress information."
   (when (and (arrayp params) (> (length params) 0))
     (lsp-log (aref params 0))))
 
