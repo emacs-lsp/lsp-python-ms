@@ -100,7 +100,7 @@ stable, beta or daily."
   :group 'lsp-python-ms)
 
 ;; See https://github.com/microsoft/python-language-server/blob/master/src/Analysis/Ast/Impl/Definitions/AnalysisOptions.cs
-(defcustom lsp-python-ms-cache "Library"
+(defcustom lsp-python-ms-cache "None"
   "The cache level of analysis for Microsoft Python Language Server."
   :type '(choice
           (const "None")
@@ -109,6 +109,11 @@ stable, beta or daily."
   :group 'lsp-python-ms)
 
 ;; See https://github.com/microsoft/python-language-server for more diagnostics
+(defcustom lsp-python-ms-linting t
+  "Microsoft Python Language Server linting. Non-nil is enable linting."
+  :type 'boolean
+  :group 'lsp-python-ms)
+
 (defcustom lsp-python-ms-errors ["unknown-parameter-name"
                                  "undefined-variable"
                                  "parameter-missing"
@@ -361,7 +366,9 @@ other handlers. "
             :filter-return #'lsp-python-ms--filter-nbsp)
 
 (defun lsp-python-ms--log-progress (_workspace params)
-  (lsp-log (car params)))
+  "Log progress information."
+  (when (and (arrayp params) (> (length params) 0))
+    (lsp-log (aref params 0))))
 
 (defun lsp-python-ms--command-string ()
   "Return the command to start the server."
@@ -376,10 +383,10 @@ other handlers. "
 
 (lsp-register-custom-settings
  `(("python.analysis.cachingLevel" lsp-python-ms-cache)
-   ("python.analysis.errors" lsp-python-ms-errors)
-   ("python.analysis.warnings" lsp-python-ms-warnings)
-   ("python.analysis.information" lsp-python-ms-information)
-   ("python.analysis.disabled" lsp-python-ms-disabled)
+   ("python.analysis.errors" ,(if lsp-python-ms-linting lsp-python-ms-errors []))
+   ("python.analysis.warnings" ,(if lsp-python-ms-linting lsp-python-ms-warnings []))
+   ("python.analysis.information" ,(if lsp-python-ms-linting lsp-python-ms-information []))
+   ("python.analysis.disabled" ,(if lsp-python-ms-linting lsp-python-ms-disabled []))
    ("python.analysis.autoSearchPaths" ,(<= (length lsp-python-ms-extra-paths) 0) t)))
 
 (lsp-register-client
@@ -391,10 +398,9 @@ other handlers. "
   :initialization-options 'lsp-python-ms--extra-init-params
   :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started-callback)
                                  ("telemetry/event" 'ignore)
-                                 ;; TODO handle this more gracefully
                                  ("python/reportProgress" 'lsp-python-ms--log-progress)
-                                 ("python/beginProgress" 'ignore)
-                                 ("python/endProgress" 'ignore))
+                                 ("python/beginProgress" 'lsp-python-ms--log-progress)
+                                 ("python/endProgress" 'lsp-python-ms--log-progress))
   :initialized-fn (lambda (workspace)
                     (with-lsp-workspace workspace
                       (lsp--set-configuration (lsp-configuration-section "python"))))))
