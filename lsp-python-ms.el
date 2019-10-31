@@ -361,12 +361,12 @@ other handlers. "
                    lsp-python-ms-executable))))
 
 (lsp-register-custom-settings
- '(("python.analysis.cachingLevel" lsp-python-ms-cache)
+ `(("python.analysis.cachingLevel" lsp-python-ms-cache)
    ("python.analysis.errors" lsp-python-ms-errors)
    ("python.analysis.warnings" lsp-python-ms-warnings)
    ("python.analysis.information" lsp-python-ms-information)
    ("python.analysis.disabled" lsp-python-ms-disabled)
-   ("python.analysis.autoSearchPaths" (> (length lsp-python-ms-extra-paths) 0) t)))
+   ("python.analysis.autoSearchPaths" ,(> (length lsp-python-ms-extra-paths) 0) t)))
 
 (lsp-register-client
  (make-lsp-client
