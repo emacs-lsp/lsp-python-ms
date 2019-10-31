@@ -386,10 +386,9 @@ other handlers. "
   :initialization-options 'lsp-python-ms--extra-init-params
   :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started-callback)
                                  ("telemetry/event" 'ignore)
-                                 ;; TODO handle this more gracefully
                                  ("python/reportProgress" 'lsp-python-ms--log-progress)
-                                 ("python/beginProgress" 'ignore)
-                                 ("python/endProgress" 'ignore))
+                                 ("python/beginProgress" 'lsp-python-ms--log-progress)
+                                 ("python/endProgress" 'lsp-python-ms--log-progress))
   :initialized-fn (lambda (workspace)
                     (with-lsp-workspace workspace
                       (lsp--set-configuration (lsp-configuration-section "python"))))))
