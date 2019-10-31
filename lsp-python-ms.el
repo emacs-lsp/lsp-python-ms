@@ -141,7 +141,7 @@ stable, beta or daily."
   :group 'lsp-python-ms)
 
 (defcustom lsp-python-ms-parse-dot-env-enabled t
-  "Automatically parse .env file in the project root."
+  "Automatically parse .env file in the project root if non-nil."
   :type 'boolean
   :group 'lsp-python-ms)
 
@@ -326,7 +326,7 @@ directory"
          (file (concat (file-name-as-directory root) ".env"))
          (rx (concat "^[:blank:]*" envvar "[:blank:]*=[:blank:]*"))
          val)
-    (when (and (file-exists-p file) (file-readable-p file))
+    (when (and (file-exists-p file) (file-regular-p file) (file-readable-p file))
       (with-temp-buffer
         (insert-file-contents file)
         (keep-lines rx (point-min) (point-max))
