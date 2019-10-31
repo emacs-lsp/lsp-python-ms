@@ -195,10 +195,15 @@ With prefix, FORCED to redownload the server."
                     (lambda (_data bar)
                       ;; Skip http header
                       (re-search-forward "\r?\n\r?\n")
-                      (write-region (point) (point-max) temp-file)
 
+                      ;; Save to the temp file
+                      (let ((coding-system-for-write 'binary))
+                        (write-region (point) (point-max) temp-file))
+
+                      ;; Report progress
                       (progress-reporter-done bar)
 
+                      ;; Extract the archive
                       (message "Extracting Microsoft Python Language Server...")
                       (when (file-exists-p lsp-python-ms-dir)
                         (delete-directory lsp-python-ms-dir 'recursive))
