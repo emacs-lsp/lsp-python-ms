@@ -135,6 +135,11 @@ stable, beta or daily."
   :type 'lsp-string-vector
   :group 'lsp-python-ms)
 
+(defcustom lsp-python-ms-parse-dot-env-enabled t
+  "Automatically parse .env file in the project root."
+  :type 'boolean
+  :group 'lsp-python-ms)
+
 (defconst lsp-python-ms--base-url "https://pvsc.blob.core.windows.net"
   "The base url to get nupkg package.
 The alternative is `https://pvsc.azureedge.net'")
@@ -277,7 +282,8 @@ lsp-workspace-root function that finds the current buffer's
 workspace root.  If nothing works, default to the current file's
 directory"
   (let ((workspace-root (if workspace (lsp--workspace-root workspace) (lsp-python-ms--workspace-root))))
-    (lsp-python-ms--parse-dot-env workspace-root)
+    (when lsp-python-ms-parse-dot-env-enabled
+      (lsp-python-ms--parse-dot-env workspace-root))
     (cl-destructuring-bind (pyver _pysyspath pyintpath)
         (lsp-python-ms--get-python-ver-and-syspath workspace-root)
       `(:interpreter
@@ -315,7 +321,7 @@ directory"
          (file (concat (file-name-as-directory root) ".env"))
          (rx (concat "^[:blank:]*" envvar "[:blank:]*=[:blank:]*"))
          val)
-    (when (file-exists-p file)
+    (when (and (file-exists-p file) (file-readable-p file))
       (with-temp-buffer
         (insert-file-contents file)
         (keep-lines rx (point-min) (point-max))
