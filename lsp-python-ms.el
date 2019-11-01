@@ -209,7 +209,7 @@ With prefix, FORCED to redownload the server."
                       (progress-reporter-done bar)
 
                       ;; Extract the archive
-                      (message "Extracting Microsoft Python Language Server...")
+                      (lsp--info "Extracting Microsoft Python Language Server...")
                       (when (file-exists-p lsp-python-ms-dir)
                         (delete-directory lsp-python-ms-dir 'recursive))
 
@@ -221,12 +221,12 @@ With prefix, FORCED to redownload the server."
                            (if (and (= 0 status)
                                     (file-exists-p lsp-python-ms-executable))
                                (progn
-                                 (message "Extracting Microsoft Python Language Server...done")
+                                 (lsp--info "Extracting Microsoft Python Language Server...done")
                                  ;; Make the binary executable
                                  (chmod lsp-python-ms-executable #o755)
                                  ;; Start LSP if need
                                  (when lsp-mode (lsp)))
-                             (message "Failed to extract Microsoft Python Language Server: %d" status)))))
+                             (lsp--error "Failed to extract Microsoft Python Language Server: %d" status)))))
                       ) `(,download-reporter))
       (dotimes (k 100)
         (sit-for 0.1)
@@ -335,7 +335,7 @@ directory"
 
 WORKSPACE is just used for logging and _PARAMS is unused."
    (lsp-workspace-status "::Started" workspace)
-   (message "Python language server started"))
+   (lsp--info "Microsoft Python language server started"))
 
 (defun lsp-python-ms--client-initialized (client)
    "Callback to register and configure client after it's initialized.
@@ -360,10 +360,26 @@ other handlers. "
 (advice-add 'lsp-ui-sideline--format-info
             :filter-return #'lsp-python-ms--filter-nbsp)
 
-(defun lsp-python-ms--log-progress (_workspace params)
+(defun lsp-python-ms--report-progress-callback (_workspace params)
   "Log progress information."
   (when (and (arrayp params) (> (length params) 0))
     (lsp-log (aref params 0))))
+
+(defun lsp-python-ms--begin-progress-callback (workspace &rest _)
+  (with-lsp-workspace workspace
+    (--each (lsp--workspace-buffers workspace)
+      (when (buffer-live-p it)
+        (with-current-buffer it
+          (lsp--spinner-start)))))
+  (lsp--info "Microsoft Python language server is analyzing..."))
+
+(defun lsp-python-ms--end-progress-callback (workspace &rest _)
+  (with-lsp-workspace workspace
+    (--each (lsp--workspace-buffers workspace)
+      (when (buffer-live-p it)
+        (with-current-buffer it
+          (lsp--spinner-stop))))
+    (lsp--info "Microsoft Python language server is analyzing...done")))
 
 (defun lsp-python-ms--command-string ()
   "Return the command to start the server."
@@ -393,9 +409,9 @@ other handlers. "
   :initialization-options 'lsp-python-ms--extra-init-params
   :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started-callback)
                                  ("telemetry/event" 'ignore)
-                                 ("python/reportProgress" 'lsp-python-ms--log-progress)
-                                 ("python/beginProgress" (lambda (&rest _) (lsp--spinner-start)))
-                                 ("python/endProgress" (lambda (&rest _) (lsp--spinner-stop))))
+                                 ("python/reportProgress" 'lsp-python-ms--report-progress-callback)
+                                 ("python/beginProgress" 'lsp-python-ms--begin-progress-callback)
+                                 ("python/endProgress" 'lsp-python-ms--end-progress-callback))
   :initialized-fn (lambda (workspace)
                     (with-lsp-workspace workspace
                       (lsp--set-configuration (lsp-configuration-section "python"))))))
