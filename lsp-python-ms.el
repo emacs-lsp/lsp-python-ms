@@ -1,9 +1,9 @@
-;;; lsp-python-ms.el --- lsp-mode client for Microsoft python-language-server -*- lexical-binding: t -*-
+;;; lsp-python-ms.el --- The lsp-mode client for Microsoft python-language-server -*- lexical-binding: t -*-
 
 ;; Author: Charl Botha
 ;; Maintainer: Andrew Christianson, Vincent Zhang
 ;; Version: 0.4.0
-;; Package-Requires: ((cl-lib "0.6.1") (lsp-mode "6.0") (python "0.26.1") (json "1.4") (emacs "24.4"))
+;; Package-Requires: ((emacs "25.1") (cl-lib "0.6.1") (lsp-mode "6.0"))
 ;; Homepage: https://github.com/andrew-christianson/lsp-python-ms
 ;; Keywords: languages tools
 
@@ -31,7 +31,6 @@
 ;;; Code:
 (require 'cl-lib)
 (require 'lsp-mode)
-(require 'python)
 (require 'json)
 (require 'projectile nil 'noerror)
 (require 'find-file-in-project nil 'noerror)
@@ -226,8 +225,8 @@ With prefix, FORCED to redownload the server."
                                  (chmod lsp-python-ms-executable #o755)
                                  ;; Start LSP if need
                                  (when lsp-mode (lsp)))
-                             (lsp--error "Failed to extract Microsoft Python Language Server: %d" status)))))
-                      ) `(,download-reporter))
+                             (lsp--error "Failed to extract Microsoft Python Language Server: %d" status))))))
+                    `(,download-reporter))
       (dotimes (k 100)
         (sit-for 0.1)
         (progress-reporter-update download-reporter k)))))
@@ -294,8 +293,7 @@ directory"
                       :Version ,pyver))
         ;; preferredFormat "markdown" or "plaintext"
         ;; experiment to find what works best -- over here mostly plaintext
-        :displayOptions (
-                         :preferredFormat "markdown"
+        :displayOptions (:preferredFormat "markdown"
                          :trimDocumentationLines :json-false
                          :maxDocumentationLineLength 0
                          :trimDocumentationText :json-false
