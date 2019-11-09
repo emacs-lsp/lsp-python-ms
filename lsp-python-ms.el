@@ -143,6 +143,16 @@ stable, beta or daily."
   "The base url to get nupkg package.
 The alternative is `https://pvsc.azureedge.net'")
 
+(defcustom lsp-python-ms-log-level "Error"
+  "Log Level"
+  :type 'string
+  :group 'lsp-python-ms
+  :options (list "Trace"
+                 "Info"
+                 "Information"
+                 "Error"
+                 "Warning"))
+
 (defun lsp-python-ms-latest-nupkg-url (&optional channel)
   "Get the nupkg url of the latest Microsoft Python Language Server."
   (let ((channel (or channel "stable")))
@@ -239,6 +249,14 @@ After stopping or killing the process, retry to update."
   (interactive)
   (lsp-python-ms-setup t))
 
+(defun lsp-python-ms-locate-python (root)
+  "Look for virtual environments local to the workspace"
+  (let* ((venv (locate-dominating-file default-directory "venv/"))
+         (sys-python (executable-find lsp-python-ms-python-executable-cmd))
+         (venv-python (expand-file-name "venv/bin/python" venv)))
+    (cond
+     ((and venv (file-executable-p venv-python)) venv-python)
+     (sys-python))))
 ;; it's crucial that we send the correct Python version to MS PYLS,
 ;; else it returns no docs in many cases furthermore, we send the
 ;; current Python's (can be virtualenv) sys.path as searchPaths
@@ -247,14 +265,23 @@ After stopping or killing the process, retry to update."
 
 The WORKSPACE-ROOT will be prepended to the list of python search
 paths and then the entire list will be json-encoded."
-  (let ((python (executable-find lsp-python-ms-python-executable-cmd))
+  (let ((python (lsp-python-ms-locate-python workspace-root))
+        (default-directory workspace-root)
         (init "from __future__ import print_function; import sys; sys.path = list(filter(lambda p: p != '', sys.path)); import json;")
-        (ver "print(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));")
-        (sp (concat "sys.path.insert(0, '" workspace-root "'); print(json.dumps(sys.path));"))
-        (ex "print(sys.executable)"))
+        (ver "v=(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));")
+        (sp (concat "sys.path.insert(0, '" workspace-root "'); p=sys.path;"))
+        (ex "e=sys.executable;")
+        (val "print(json.dumps({\"version\":v,\"paths\":p,\"executable\":e}))"))
     (with-temp-buffer
-      (call-process python nil t nil "-c" (concat init ver sp ex))
-      (cl-subseq (split-string (buffer-string) "\n") 0 3))))
+      (call-process python nil t nil "-c" (concat init ver sp ex val))
+      (let* ((json-array-type 'vector)
+             (json-key-type 'string)
+             (json-object-type 'hash-table)
+             (json-string (buffer-string))
+             (json-hash (json-read-from-string json-string)))
+        (list (gethash "version" json-hash)
+              (gethash "paths" json-hash)
+              (gethash "executable" json-hash))))))
 
 (defun lsp-python-ms--workspace-root ()
   "Get the path of the root of the current workspace.
@@ -286,10 +313,9 @@ directory"
     (cl-destructuring-bind (pyver _pysyspath pyintpath)
         (lsp-python-ms--get-python-ver-and-syspath workspace-root)
       `(:interpreter
-        (:properties (:InterpreterPath
-                      ,pyintpath
-                      ;; this database dir will be created if required
-                      ;; :DatabasePath ,(expand-file-name (directory-file-name lsp-python-ms-cache-dir))
+        (:properties (
+                      :InterpreterPath ,pyintpath
+                      :UseDefaultDatabase t
                       :Version ,pyver))
         ;; preferredFormat "markdown" or "plaintext"
         ;; experiment to find what works best -- over here mostly plaintext
@@ -300,9 +326,10 @@ directory"
                          :maxDocumentationTextLength 0)
         :searchPaths ,(if lsp-python-ms-extra-paths
                           (vconcat lsp-python-ms-extra-paths nil)
-                        [])
+                        _pysyspath)
         :analysisUpdates t
         :asyncStartup t
+        :logLevel ,lsp-python-ms-log-level
         :typeStubSearchPaths ,(vector (concat lsp-python-ms-dir "Typeshed"))))))
 
 (defun lsp-python-ms--filter-nbsp (str)
