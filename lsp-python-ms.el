@@ -203,7 +203,7 @@ With prefix, FORCED to redownload the server."
                                "bash -c 'mkdir -p %2$s && unzip -qq %1$s -d %2$s'")
                               (t (error "Unable to unzip! You may need to install the `unzip` executable."))))
           (download-reporter (make-progress-reporter
-                              "Downloading Microsoft Python Language Server..."
+                              (lsp--info "Downloading Microsoft Python Language Server...")
                               0  100)))
       (url-retrieve (lsp-python-ms-latest-nupkg-url lsp-python-ms-nupkg-channel)
                     (lambda (_data bar)
