@@ -153,6 +153,15 @@ The alternative is `https://pvsc.azureedge.net'")
                  "Error"
                  "Warning"))
 
+(defcustom lsp-python-ms-extra-major-modes '()
+    "A list of additional major modes in which to activate.
+
+In addition to the python-mode, you may wish the Microsoft Python
+Language Server to activate in other major modes. If so, list them
+here."
+  :type 'list
+  :group 'lsp-python-ms)
+
 (defun lsp-python-ms-latest-nupkg-url (&optional channel)
   "Get the nupkg url of the latest Microsoft Python Language Server."
   (let ((channel (or channel "stable")))
@@ -427,10 +436,13 @@ other handlers. "
    ("python.analysis.disabled" lsp-python-ms-disabled)
    ("python.analysis.autoSearchPaths" ,(<= (length lsp-python-ms-extra-paths) 0) t)))
 
+(dolist (mode lsp-python-ms-extra-major-modes)
+  (add-to-list 'lsp-language-id-configuration `(,mode . "python")))
+
 (lsp-register-client
  (make-lsp-client
   :new-connection (lsp-stdio-connection 'lsp-python-ms--command-string)
-  :major-modes '(python-mode)
+  :major-modes (append '(python-mode) lsp-python-ms-extra-major-modes)
   :server-id 'mspyls
   :priority 1
   :initialization-options 'lsp-python-ms--extra-init-params
