@@ -1,6 +1,7 @@
 =lsp-mode= client leveraging Microsoft's [[https://github.com/Microsoft/python-language-server][python-language-server]].
 
 * Installation
+
 Include ~lsp-python-ms~ in the configuration file:
 #+BEGIN_SRC emacs-lisp
 (require 'lsp-python-ms)
@@ -49,7 +50,13 @@ If you have troubles to download the package, you can also build the server your
    #+END_SRC
 
 For development, you might find it useful to run =cask install=.
+
+* FAQ
+
+1. Unresolved import warnings
+
+   Add the directories to =lsp-python-ms-extra-paths= or =PYTHONPATH=. Refer to [[https://github.com/microsoft/python-language-server/blob/master/TROUBLESHOOTING.md#unresolved-import-warnings][Troubleshooting - Unresolved import warnings]].
+
 * Credit
 
-All credit to [[https://cpbotha.net][cpbotha]] on [[https://vxlabs.com/2018/11/19/configuring-emacs-lsp-mode-and-microsofts-visual-studio-code-python-language-server/][vxlabs]]!  This just tidies and packages his
-work there
+All credit to [[https://cpbotha.net][cpbotha]] on [[https://vxlabs.com/2018/11/19/configuring-emacs-lsp-mode-and-microsofts-visual-studio-code-python-language-server/][vxlabs]]! This just tidies and packages his work there.
