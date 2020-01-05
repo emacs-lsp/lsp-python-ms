@@ -218,9 +218,6 @@ here."
                       (let ((coding-system-for-write 'binary))
                         (write-region (point) (point-max) temp-file))
 
-                      ;; Report progress
-                      (progress-reporter-done bar)
-
                       ;; Extract the archive
                       (lsp--info "Extracting Microsoft Python Language Server...")
                       (f-delete lsp-python-ms-dir t)
