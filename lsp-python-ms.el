@@ -48,7 +48,7 @@
   :group 'lsp-mode
   :link '(url-link "https://github.com/Microsoft/python-language-server"))
 
-(defcustom lsp-python-ms-dir (expand-file-name "mspyls/" user-emacs-directory)
+(defcustom lsp-python-ms-dir (f-join lsp-server-install-dir "mspyls/")
   "The directory of the Microsoft Python Language Server."
   :type 'directory
   :group 'lsp-python-ms)
@@ -85,9 +85,9 @@ set as `python3' to let ms-pyls use python 3 environments."
   :type 'string
   :group 'lsp-python-ms)
 
-(defcustom lsp-python-ms-executable (concat lsp-python-ms-dir
+(defcustom lsp-python-ms-executable (f-join lsp-python-ms-dir
                                             "Microsoft.Python.LanguageServer"
-                                            (and (eq system-type 'windows-nt) ".exe"))
+                                            (if (eq system-type 'windows-nt) ".exe" ""))
   "Path to the Microsoft Python LanguageServer binary."
   :type '(file :must-match t)
   :group 'lsp-python-ms)
@@ -198,22 +198,17 @@ here."
            (lambda (t1 t2)
              (time-less-p (car t2) (car t1))))))))))
 
-(defun lsp-python-ms-setup (&optional forced)
-  "Downloading Microsoft Python Language Server to path specified.
-With prefix, FORCED to redownload the server."
-  (interactive "P")
-  (unless (and (not forced)
-               (executable-find lsp-python-ms-executable))
+(defun lsp-python-ms-install (_client callback _error-callback update?)
+  "Downloading Microsoft Python Language Server to the specified path."
+  (unless (and (not update?)
+               (f-exists? lsp-python-ms-executable))
     (let ((temp-file (make-temp-file "mspyls" nil ".zip"))
           (unzip-script (cond ((executable-find "powershell")
                                "powershell -noprofile -noninteractive \
 -nologo -ex bypass Expand-Archive -path '%s' -dest '%s'")
                               ((executable-find "unzip")
                                "bash -c 'mkdir -p %2$s && unzip -qq %1$s -d %2$s'")
-                              (t (error "Unable to unzip! You may need to install the `unzip` executable."))))
-          (download-reporter (make-progress-reporter
-                              (lsp--info "Downloading Microsoft Python Language Server...")
-                              0  100)))
+                              (t (error "Unable to unzip! You may need to install the `unzip` executable.")))))
       (url-retrieve (lsp-python-ms-latest-nupkg-url lsp-python-ms-nupkg-channel)
                     (lambda (_data bar)
                       ;; Skip http header
@@ -228,8 +223,7 @@ With prefix, FORCED to redownload the server."
 
                       ;; Extract the archive
                       (lsp--info "Extracting Microsoft Python Language Server...")
-                      (when (file-exists-p lsp-python-ms-dir)
-                        (delete-directory lsp-python-ms-dir 'recursive))
+                      (f-delete lsp-python-ms-dir t)
 
                       (set-process-sentinel
                        (start-process-shell-command "extract-mspyls" nil
@@ -237,18 +231,15 @@ With prefix, FORCED to redownload the server."
                        (lambda (proc _)
                          (let ((status (process-exit-status proc)))
                            (if (and (= 0 status)
-                                    (file-exists-p lsp-python-ms-executable))
+                                    (f-exists? lsp-python-ms-executable))
                                (progn
                                  (lsp--info "Extracting Microsoft Python Language Server...done")
                                  ;; Make the binary executable
                                  (chmod lsp-python-ms-executable #o755)
                                  ;; Start LSP if need
                                  (when lsp-mode (lsp)))
-                             (lsp--error "Failed to extract Microsoft Python Language Server: %d" status))))))
-                    `(,download-reporter))
-      (dotimes (k 100)
-        (sit-for 0.1)
-        (progress-reporter-update download-reporter k)))))
+                             (lsp--error "Failed to extract Microsoft Python Language Server: %d" status)))
+                         (funcall callback))))))))
 
 (defun lsp-python-ms-update-server ()
   "Update Microsoft Python Language Server.
@@ -256,15 +247,15 @@ With prefix, FORCED to redownload the server."
 On Windows, if the server is running, the updating will fail.
 After stopping or killing the process, retry to update."
   (interactive)
-  (lsp-python-ms-setup t))
+  (lsp-python-ms-install nil #'ignore nil t))
 
 (defun lsp-python-ms-locate-python ()
   "Look for virtual environments local to the workspace"
   (let* ((venv (locate-dominating-file default-directory "venv/"))
          (sys-python (executable-find lsp-python-ms-python-executable-cmd))
-         (venv-python (expand-file-name "venv/bin/python" venv)))
+         (venv-python (f-expand "venv/bin/python" venv)))
     (cond
-     ((and venv (file-executable-p venv-python)) venv-python)
+     ((and venv (f-executable? venv-python)) venv-python)
      (sys-python))))
 
 ;; it's crucial that we send the correct Python version to MS PYLS,
@@ -354,10 +345,10 @@ directory"
 (defun lsp-python-ms--parse-dot-env (root &optional envvar)
   "Set environment variable (default PYTHONPATH) from .env file if this file exists in the project root."
   (let* ((envvar (or envvar "PYTHONPATH"))
-         (file (concat (file-name-as-directory root) ".env"))
+         (file (f-join (file-name-as-directory root) ".env"))
          (rx (concat "^[:blank:]*" envvar "[:blank:]*=[:blank:]*"))
          val)
-    (when (and (file-exists-p file) (file-regular-p file) (file-readable-p file))
+    (when (and (f-exists? file) (f-file? file) (f-readable? file))
       (with-temp-buffer
         (insert-file-contents file)
         (keep-lines rx (point-min) (point-max))
@@ -417,17 +408,6 @@ other handlers. "
           (lsp--spinner-stop))))
     (lsp--info "Microsoft Python language server is analyzing...done")))
 
-(defun lsp-python-ms--command-string ()
-  "Return the command to start the server."
-  ;; Try to download server if it doesn't exists
-  (unless (executable-find lsp-python-ms-executable)
-    (lsp-python-ms-setup))
-
-  (if (executable-find lsp-python-ms-executable)
-      lsp-python-ms-executable
-    (error (concat "Cannot find Microsoft Python Language Server executable! It's expected to be "
-                   lsp-python-ms-executable))))
-
 (lsp-register-custom-settings
  `(("python.analysis.cachingLevel" lsp-python-ms-cache)
    ("python.analysis.errors" lsp-python-ms-errors)
@@ -441,7 +421,8 @@ other handlers. "
 
 (lsp-register-client
  (make-lsp-client
-  :new-connection (lsp-stdio-connection 'lsp-python-ms--command-string)
+  :new-connection (lsp-stdio-connection (lambda () lsp-python-ms-executable)
+                                        (lambda () (f-exists? lsp-python-ms-executable)))
   :major-modes (append '(python-mode) lsp-python-ms-extra-major-modes)
   :server-id 'mspyls
   :priority 1
@@ -453,7 +434,8 @@ other handlers. "
                                  ("python/endProgress" 'lsp-python-ms--end-progress-callback))
   :initialized-fn (lambda (workspace)
                     (with-lsp-workspace workspace
-                      (lsp--set-configuration (lsp-configuration-section "python"))))))
+                      (lsp--set-configuration (lsp-configuration-section "python"))))
+  :download-server-fn #'lsp-python-ms-install))
 
 (provide 'lsp-python-ms)
 
