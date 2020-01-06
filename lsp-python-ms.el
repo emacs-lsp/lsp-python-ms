@@ -199,7 +199,7 @@ here."
            (lambda (t1 t2)
              (time-less-p (car t2) (car t1))))))))))
 
-(defun lsp-python-ms--install-server (_client callback _error-callback update?)
+(defun lsp-python-ms--install-server (_client callback error-callback update?)
   "Downloading Microsoft Python Language Server to the specified path."
   (unless (and (not update?)
                (f-exists? lsp-python-ms-executable))
@@ -232,21 +232,19 @@ Please extact manually." temp-file install-dir)))))
          (lsp--info "Extracting Microsoft Python Language Server...")
          (f-delete install-dir t)
 
-         (set-process-sentinel
-          (start-process-shell-command "extract-mspyls" nil unzip-script)
-          (lambda (proc _)
-            (let ((status (process-exit-status proc)))
-              (if (and (= 0 status)
-                       (f-exists? lsp-python-ms-executable))
-                  (progn
-                    (lsp--info "Extracting Microsoft Python Language Server...done")
-                    ;; Make the binary executable
-                    (chmod lsp-python-ms-executable #o755)
-                    ;; Start LSP if need
-                    (and lsp-mode (lsp)))
-                (lsp--error "Failed to extract Microsoft Python Language Server [error %d] \
-- '%s' to '%s'" status temp-file install-dir)))
-            (funcall callback))))))))
+         (lsp-async-start-process
+          (lambda ()
+            (when (f-exists? lsp-python-ms-executable)
+              (lsp--info "Extracting Microsoft Python Language Server...done")
+              ;; Make the binary executable
+              (chmod lsp-python-ms-executable #o755)
+              ;; Start LSP if need
+              (and lsp-mode (lsp)))
+            (funcall callback))
+          error-callback
+          (if (executable-find "unzip") "sh" "cmd")
+          (if (executable-find "unzip") "-c" "/c")
+          unzip-script))))))
 
 (defun lsp-python-ms-update-server ()
   "Update Microsoft Python Language Server.
