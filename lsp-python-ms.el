@@ -139,9 +139,10 @@ stable, beta or daily."
   :type 'boolean
   :group 'lsp-python-ms)
 
-(defconst lsp-python-ms--base-url "https://pvsc.blob.core.windows.net"
-  "The base url to get nupkg package.
-The alternative is `https://pvsc.azureedge.net'")
+(defcustom lsp-python-ms-base-url "https://pvsc.blob.core.windows.net"
+  "The base url to get nupkg package. The alternative is `https://pvsc.azureedge.net'."
+  :type 'string
+  :group 'lsp-python-ms)
 
 (defcustom lsp-python-ms-log-level "Error"
   "Log Level"
@@ -166,16 +167,16 @@ here."
   "Get the nupkg url of the latest Microsoft Python Language Server."
   (let ((channel (or channel "stable")))
     (unless (member channel '("stable" "beta" "daily"))
-      (error (format "Unknown channel: %s" channel)))
+      (user-error "Unknown channel: %s" channel))
     (with-current-buffer
         (url-retrieve-synchronously
          (format "%s/python-language-server-%s?restype=container&comp=list&prefix=Python-Language-Server-%s-x64"
-                 lsp-python-ms--base-url
+                 lsp-python-ms-base-url
                  channel
                  (cond ((eq system-type 'darwin)  "osx")
                        ((eq system-type 'gnu/linux) "linux")
                        ((eq system-type 'windows-nt) "win")
-                       (t (error (format "Unsupported system: %s" system-type))))))
+                       (t (user-error "Unsupported system: %s" system-type)))))
       (goto-char (point-min))
       (re-search-forward "\n\n")
       (pcase (xml-parse-region (point) (point-max))
@@ -202,41 +203,50 @@ here."
   "Downloading Microsoft Python Language Server to the specified path."
   (unless (and (not update?)
                (f-exists? lsp-python-ms-executable))
-    (let ((temp-file (make-temp-file "mspyls" nil ".zip"))
-          (unzip-script (cond ((executable-find "powershell")
-                               "powershell -noprofile -noninteractive \
--nologo -ex bypass Expand-Archive -path '%s' -dest '%s'")
-                              ((executable-find "unzip")
-                               "bash -c 'mkdir -p %2$s && unzip -qq %1$s -d %2$s'")
-                              (t (error "Unable to unzip! You may need to install the `unzip` executable.")))))
-      (url-retrieve (lsp-python-ms-latest-nupkg-url lsp-python-ms-nupkg-channel)
-                    (lambda (_data _bar)
-                      ;; Skip http header
-                      (re-search-forward "\r?\n\r?\n")
+    (let* ((temp-file (make-temp-file "mspyls" nil ".zip"))
+           (install-dir (expand-file-name lsp-python-ms-dir))
+           (unzip-script (cond ((executable-find "unzip")
+                                (format "mkdir -p %s && unzip -qq %s -d %s"
+                                        install-dir temp-file install-dir))
+                               ((executable-find "powershell")
+                                (format "powershell -noprofile -noninteractive \
+-nologo -ex bypass Expand-Archive -path '%s' -dest '%s'" temp-file install-dir))
+                               (t (user-error "Unable to extract '%s' to '%s'! \
+Please extact manually." temp-file install-dir)))))
 
-                      ;; Save to the temp file
-                      (let ((coding-system-for-write 'binary))
-                        (write-region (point) (point-max) temp-file))
+      (lsp--info "Downloading Microsoft Python Language Server...")
 
-                      ;; Extract the archive
-                      (lsp--info "Extracting Microsoft Python Language Server...")
-                      (f-delete lsp-python-ms-dir t)
+      (url-retrieve
+       (lsp-python-ms-latest-nupkg-url lsp-python-ms-nupkg-channel)
+       (lambda (_data)
+         ;; Skip http header
+         (re-search-forward "\r?\n\r?\n")
 
-                      (set-process-sentinel
-                       (start-process-shell-command "extract-mspyls" nil
-                                                    (format unzip-script temp-file lsp-python-ms-dir))
-                       (lambda (proc _)
-                         (let ((status (process-exit-status proc)))
-                           (if (and (= 0 status)
-                                    (f-exists? lsp-python-ms-executable))
-                               (progn
-                                 (lsp--info "Extracting Microsoft Python Language Server...done")
-                                 ;; Make the binary executable
-                                 (chmod lsp-python-ms-executable #o755)
-                                 ;; Start LSP if need
-                                 (when lsp-mode (lsp)))
-                             (lsp--error "Failed to extract Microsoft Python Language Server: %d" status)))
-                         (funcall callback))))))))
+         ;; Save to the temp file
+         (let ((coding-system-for-write 'binary))
+           (write-region (point) (point-max) temp-file))
+
+         (lsp--info "Downloading Microsoft Python Language Server...done")
+
+         ;; Extract the archive
+         (lsp--info "Extracting Microsoft Python Language Server...")
+         (f-delete install-dir t)
+
+         (set-process-sentinel
+          (start-process-shell-command "extract-mspyls" nil unzip-script)
+          (lambda (proc _)
+            (let ((status (process-exit-status proc)))
+              (if (and (= 0 status)
+                       (f-exists? lsp-python-ms-executable))
+                  (progn
+                    (lsp--info "Extracting Microsoft Python Language Server...done")
+                    ;; Make the binary executable
+                    (chmod lsp-python-ms-executable #o755)
+                    ;; Start LSP if need
+                    (and lsp-mode (lsp)))
+                (lsp--error "Failed to extract Microsoft Python Language Server [error %d] \
+- '%s' to '%s'" status temp-file install-dir)))
+            (funcall callback))))))))
 
 (defun lsp-python-ms-update-server ()
   "Update Microsoft Python Language Server.
@@ -310,7 +320,7 @@ directory"
     (when lsp-python-ms-parse-dot-env-enabled
       (lsp-python-ms--parse-dot-env workspace-root))
     (cl-destructuring-bind (pyver pysyspath pyintpath)
-        (lsp-python-ms--get-python-ver-and-syspath workspace-root)
+      (lsp-python-ms--get-python-ver-and-syspath workspace-root)
       `(:interpreter
         (:properties (
                       :InterpreterPath ,pyintpath
@@ -329,7 +339,7 @@ directory"
         :analysisUpdates t
         :asyncStartup t
         :logLevel ,lsp-python-ms-log-level
-        :typeStubSearchPaths ,(vector (concat lsp-python-ms-dir "Typeshed"))))))
+        :typeStubSearchPaths ,(vector (expand-file-name (f-join lsp-python-ms-dir "Typeshed")))))))
 
 (defun lsp-python-ms--filter-nbsp (str)
   "Filter nbsp entities from STR."
