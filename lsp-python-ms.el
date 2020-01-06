@@ -199,7 +199,7 @@ here."
            (lambda (t1 t2)
              (time-less-p (car t2) (car t1))))))))))
 
-(defun lsp-python-ms-install (_client callback _error-callback update?)
+(defun lsp-python-ms--install-server (_client callback _error-callback update?)
   "Downloading Microsoft Python Language Server to the specified path."
   (unless (and (not update?)
                (f-exists? lsp-python-ms-executable))
@@ -254,7 +254,7 @@ Please extact manually." temp-file install-dir)))))
 On Windows, if the server is running, the updating will fail.
 After stopping or killing the process, retry to update."
   (interactive)
-  (lsp-python-ms-install nil #'ignore nil t))
+  (lsp-python-ms--install-server nil #'ignore #'lsp--error t))
 
 (defun lsp-python-ms-locate-python ()
   "Look for virtual environments local to the workspace"
@@ -441,7 +441,7 @@ other handlers. "
   :initialized-fn (lambda (workspace)
                     (with-lsp-workspace workspace
                       (lsp--set-configuration (lsp-configuration-section "python"))))
-  :download-server-fn #'lsp-python-ms-install))
+  :download-server-fn #'lsp-python-ms--install-server))
 
 (provide 'lsp-python-ms)
 
