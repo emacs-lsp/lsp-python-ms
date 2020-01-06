@@ -354,11 +354,10 @@ directory"
           (unless (string-empty-p val)
             (setenv envvar val)))))))
 
-(defun lsp-python-ms--language-server-started-callback (workspace _params)
+(defun lsp-python-ms--language-server-started-callback (_workspace _params)
   "Handle the python/languageServerStarted message.
 
 WORKSPACE is just used for logging and _PARAMS is unused."
-   (lsp-workspace-status "::Started" workspace)
    (lsp--info "Microsoft Python language server started"))
 
 (defun lsp-python-ms--client-initialized (client)
