@@ -85,7 +85,7 @@ set as `python3' to let ms-pyls use python 3 environments."
   :type 'string
   :group 'lsp-python-ms)
 
-(defcustom lsp-python-ms-executable (f-join lsp-python-ms-dir
+(defcustom lsp-python-ms-executable (concat lsp-python-ms-dir
                                             "Microsoft.Python.LanguageServer"
                                             (if (eq system-type 'windows-nt) ".exe" ""))
   "Path to the Microsoft Python LanguageServer binary."
