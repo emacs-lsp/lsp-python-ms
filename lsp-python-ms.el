@@ -267,15 +267,55 @@ After stopping or killing the process, retry to update."
   (interactive)
   (lsp-python-ms--install-server nil #'ignore #'lsp--error t))
 
+(defun lsp-python-ms--venv-dir (dir)
+  "does directory contain a virtualenv"
+  (let ((dirs (f-directories dir)))
+    (car (seq-filter #'lsp-python-ms--venv-python dirs))))
+
+(defun lsp-python-ms--venv-python (dir)
+  "is a directory a virtualenv"
+  (let* ((python? (f-expand "bin/python" dir))
+         (python3? (f-expand "bin/python3" dir)))
+    (cond ((f-executable? python?) python?)
+          ((f-executable? python3?) python3?)
+          (t nil))))
+
+(defun lsp-python-ms--dominating-venv-python (&optional dir)
+  "Look for directories that look like venvs"
+  (let* ((path (or dir default-directory))
+         (dominating-venv (locate-dominating-file path #'lsp-python-ms--venv-dir)))
+    (if dominating-venv (lsp-python-ms--venv-python (lsp-python-ms--venv-dir dominating-venv)))))
+
+(defun lsp-python-ms--dominating-conda-python (&optional dir)
+  "locate dominating conda environment"
+  (let* ((path (or dir default-directory))
+         (yamls '("environment.yml"
+                  "environment.yaml"
+                  "env.yml"
+                  "env.yaml"
+                  "dev-environment.yml"
+                  "dev-environment.yaml"))
+         (dominating-yaml (seq-map
+                           (lambda (file) (if (locate-dominating-file dir file)
+                                              (expand-file-name file (locate-dominating-file dir file))))
+                           yamls))
+         (dominating-yaml-file (car (seq-filter (lambda (file) file) dominating-yaml)))
+         (dominating-conda-name (string-trim
+                                 (shell-command-to-string
+                                  (concat "sed -n 's/name:[ ]*\\(\\S*\\)/\\1/p' " dominating-yaml-file))))
+         (dominating-conda-python (string-trim (shell-command-to-string (concat "conda activate " dominating-conda-name " && which python"))))
+         )
+    dominating-conda-python))
+
 (defun lsp-python-ms-locate-python ()
   "Look for virtual environments local to the workspace"
-  (let* ((venv (locate-dominating-file default-directory "venv/"))
-         (sys-python (executable-find lsp-python-ms-python-executable-cmd))
-         (venv-python (f-expand "venv/bin/python" venv)))
+  (let* ((venv-python (lsp-python-ms--dominating-venv-python))
+         (conda-python (lsp-python-ms--dominating-conda-python))
+         (sys-python (executable-find lsp-python-ms-python-executable-cmd)))
     (cond
-     ((and venv (f-executable? venv-python)) venv-python)
+     ((f-executable? venv-python) venv-python)
+     ((f-executable? conda-python) conda-python)
      (sys-python))))
-
 ;; it's crucial that we send the correct Python version to MS PYLS,
 ;; else it returns no docs in many cases furthermore, we send the
 ;; current Python's (can be virtualenv) sys.path as searchPaths
