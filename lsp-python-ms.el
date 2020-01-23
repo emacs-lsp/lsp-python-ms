@@ -300,7 +300,8 @@ After stopping or killing the process, retry to update."
                                                    (expand-file-name file (locate-dominating-file path file))))
                                 yamls))
               (dominating-yaml-file (car (seq-filter (lambda (file) file) dominating-yaml)))
-              (dominating-conda-name (conda--get-name-from-env-yml dominating-yaml-file))
+              (dominating-conda-name (or (bound-and-true-p conda-env-current-name)
+                                         (conda--get-name-from-env-yml dominating-yaml-file)))
               (dominating-conda-python (expand-file-name
                                         lsp-python-ms-python-executable-cmd
                                         (expand-file-name
