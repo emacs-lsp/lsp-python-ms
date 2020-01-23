@@ -3,7 +3,7 @@
 ;; Author: Charl Botha
 ;; Maintainer: Andrew Christianson, Vincent Zhang
 ;; Version: 0.7.0
-;; Package-Requires: ((emacs "25.1") (cl-lib "0.6.1") (lsp-mode "6.0"))
+;; Package-Requires: ((emacs "26.1") (cl-lib "0.6.1") (lsp-mode "6.0") (conda "0.4"))
 ;; Homepage: https://github.com/andrew-christianson/lsp-python-ms
 ;; Keywords: languages tools
 
@@ -288,24 +288,24 @@ After stopping or killing the process, retry to update."
 
 (defun lsp-python-ms--dominating-conda-python (&optional dir)
   "locate dominating conda environment"
-  (let* ((path (or dir default-directory))
-         (yamls '("environment.yml"
-                  "environment.yaml"
-                  "env.yml"
-                  "env.yaml"
-                  "dev-environment.yml"
-                  "dev-environment.yaml"))
-         (dominating-yaml (seq-map
-                           (lambda (file) (if (locate-dominating-file path file)
-                                              (expand-file-name file (locate-dominating-file path file))))
-                           yamls))
-         (dominating-yaml-file (car (seq-filter (lambda (file) file) dominating-yaml)))
-         (dominating-conda-name (conda--get-name-from-env-yml dominating-yaml-file))
-         (dominating-conda-python (expand-file-name
-                                   lsp-python-ms-python-executable-cmd
-                                   (expand-file-name
-                                    conda-env-executables-dir
-                                    (conda-env-name-to-dir dominating-conda-name)))))
+  (when-let* ((path (or dir default-directory))
+              (yamls '("environment.yml"
+                       "environment.yaml"
+                       "env.yml"
+                       "env.yaml"
+                       "dev-environment.yml"
+                       "dev-environment.yaml"))
+              (dominating-yaml (seq-map
+                                (lambda (file) (if (locate-dominating-file path file)
+                                                   (expand-file-name file (locate-dominating-file path file))))
+                                yamls))
+              (dominating-yaml-file (car (seq-filter (lambda (file) file) dominating-yaml)))
+              (dominating-conda-name (conda--get-name-from-env-yml dominating-yaml-file))
+              (dominating-conda-python (expand-file-name
+                                        lsp-python-ms-python-executable-cmd
+                                        (expand-file-name
+                                         conda-env-executables-dir
+                                         (conda-env-name-to-dir dominating-conda-name)))))
     dominating-conda-python))
 
 (defun lsp-python-ms-locate-python ()
