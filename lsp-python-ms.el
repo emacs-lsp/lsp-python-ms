@@ -296,15 +296,16 @@ After stopping or killing the process, retry to update."
                   "dev-environment.yml"
                   "dev-environment.yaml"))
          (dominating-yaml (seq-map
-                           (lambda (file) (if (locate-dominating-file dir file)
-                                              (expand-file-name file (locate-dominating-file dir file))))
+                           (lambda (file) (if (locate-dominating-file path file)
+                                              (expand-file-name file (locate-dominating-file path file))))
                            yamls))
          (dominating-yaml-file (car (seq-filter (lambda (file) file) dominating-yaml)))
-         (dominating-conda-name (string-trim
-                                 (shell-command-to-string
-                                  (concat "sed -n 's/name:[ ]*\\(\\S*\\)/\\1/p' " dominating-yaml-file))))
-         (dominating-conda-python (string-trim (shell-command-to-string (concat "conda activate " dominating-conda-name " && which python"))))
-         )
+         (dominating-conda-name (conda--get-name-from-env-yml dominating-yaml-file))
+         (dominating-conda-python (expand-file-name
+                                   lsp-python-ms-python-executable-cmd
+                                   (expand-file-name
+                                    conda-env-executables-dir
+                                    (conda-env-name-to-dir dominating-conda-name)))))
     dominating-conda-python))
 
 (defun lsp-python-ms-locate-python ()
@@ -324,14 +325,14 @@ After stopping or killing the process, retry to update."
 
 The WORKSPACE-ROOT will be prepended to the list of python search
 paths and then the entire list will be json-encoded."
-  (when-let ((python (lsp-python-ms-locate-python))
-             (default-directory workspace-root)
-             (init "from __future__ import print_function; import sys; \
+  (when-let* ((python (lsp-python-ms-locate-python))
+              (default-directory workspace-root)
+              (init "from __future__ import print_function; import sys; \
 sys.path = list(filter(lambda p: p != '', sys.path)); import json;")
-             (ver "v=(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));")
-             (sp (concat "sys.path.insert(0, '" workspace-root "'); p=sys.path;"))
-             (ex "e=sys.executable;")
-             (val "print(json.dumps({\"version\":v,\"paths\":p,\"executable\":e}))"))
+              (ver "v=(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));")
+              (sp (concat "sys.path.insert(0, '" workspace-root "'); p=sys.path;"))
+              (ex "e=sys.executable;")
+              (val "print(json.dumps({\"version\":v,\"paths\":p,\"executable\":e}))"))
     (with-temp-buffer
       (call-process python nil t nil "-c" (concat init ver sp ex val))
       (let* ((json-array-type 'vector)
