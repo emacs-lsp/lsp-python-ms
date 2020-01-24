@@ -274,11 +274,16 @@ After stopping or killing the process, retry to update."
 
 (defun lsp-python-ms--venv-python (dir)
   "is a directory a virtualenv"
-  (let* ((python? (f-expand "bin/python" dir))
-         (python3? (f-expand "bin/python3" dir)))
-    (cond ((f-executable? python?) python?)
-          ((f-executable? python3?) python3?)
-          (t nil))))
+  (when-let* ((python? (f-expand "bin/python" dir))
+              (python3? (f-expand "bin/python3" dir))
+              (python (cond ((f-executable? python?) python?)
+                            ((f-executable? python3?) python3?)
+                            (t nil)))
+              (not-system (not
+                           (string-equal
+                            (f-parent (f-parent (f-parent python)))
+                            (expand-file-name "~")))))
+    (and not-system python)))
 
 (defun lsp-python-ms--dominating-venv-python (&optional dir)
   "Look for directories that look like venvs"
@@ -309,15 +314,27 @@ After stopping or killing the process, retry to update."
                                          (conda-env-name-to-dir dominating-conda-name)))))
     dominating-conda-python))
 
+(defun lsp-python-ms--dominating-pyenv-python (&optional dir)
+  "locate dominating pyenv-managed python"
+  (let ((dir (or dir default-directory)))
+    (and (locate-dominating-file dir ".python-version")
+         (string-trim (shell-command-to-string "pyenv which python")))))
+
+(defun lsp-python-ms--valid-python (path)
+  (and path (f-executable? path) path))
+
 (defun lsp-python-ms-locate-python ()
   "Look for virtual environments local to the workspace"
-  (let* ((venv-python (lsp-python-ms--dominating-venv-python))
+  (let* ((pyenv-python (lsp-python-ms--dominating-pyenv-python))
+         (venv-python (lsp-python-ms--dominating-venv-python))
          (conda-python (lsp-python-ms--dominating-conda-python))
          (sys-python (executable-find lsp-python-ms-python-executable-cmd)))
+    ;; pythons by preference: local pyenv version, local conda version
     (cond
-     ((f-executable? venv-python) venv-python)
-     ((f-executable? conda-python) conda-python)
-     (sys-python))))
+     ( (lsp-python-ms--valid-python venv-python) )
+     ( (lsp-python-ms--valid-python pyenv-python) )
+     ( (lsp-python-ms--valid-python conda-python) )
+     ( (lsp-python-ms--valid-python sys-python) ))))
 ;; it's crucial that we send the correct Python version to MS PYLS,
 ;; else it returns no docs in many cases furthermore, we send the
 ;; current Python's (can be virtualenv) sys.path as searchPaths
