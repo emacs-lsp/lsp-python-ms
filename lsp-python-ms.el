@@ -246,6 +246,7 @@ Please extact manually." temp-file install-dir)))))
           (if (executable-find "unzip") "-c" "/c")
           unzip-script))))))
 
+;;;###autoload
 (defun lsp-python-ms-update-server ()
   "Update Microsoft Python Language Server.
 
