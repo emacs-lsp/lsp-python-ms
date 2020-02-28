@@ -42,6 +42,12 @@
 ;; Forward declare variable
 (defvar lsp-render-markdown-markup-content)
 
+(defvar lsp-python-ms-prefer-pyls
+  (if (boundp 'lsp-python-ms-prefer-pyls)
+      lsp-python-ms-prefer-pyls
+    t)
+  "If you prefer lsp-python-ms, please set this to nil")
+
 ;; Group declaration
 (defgroup lsp-python-ms nil
   "LSP support for python using the Microsoft Python Language Server."
@@ -430,7 +436,7 @@ other handlers. "
                                         (lambda () (f-exists? lsp-python-ms-executable)))
   :major-modes (append '(python-mode) lsp-python-ms-extra-major-modes)
   :server-id 'mspyls
-  :priority -2
+  :priority (if lsp-python-ms-prefer-pyls -2 1)
   :initialization-options 'lsp-python-ms--extra-init-params
   :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started-callback)
                                  ("telemetry/event" 'ignore)

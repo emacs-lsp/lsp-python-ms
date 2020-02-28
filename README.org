@@ -4,6 +4,7 @@
 
 Include ~lsp-python-ms~ in the configuration file:
 #+BEGIN_SRC emacs-lisp
+;; (setq lsp-python-ms-prefer-pyls nil)
 (require 'lsp-python-ms)
 (add-hook 'python-mode-hook #'lsp) ; or lsp-deferred
 #+END_SRC
@@ -12,10 +13,15 @@ A minimal ~use-package~ initialization might be:
 #+BEGIN_SRC elisp
   (use-package lsp-python-ms
     :ensure t
+    ;; :init (setq lsp-python-ms-prefer-pyls nil)
     :hook (python-mode . (lambda ()
                             (require 'lsp-python-ms)
                             (lsp))))  ; or lsp-deferred
 #+END_SRC
+
+#+BEGIN_QUOTE
+For now, the pyls is the default lsp client (priority of lsp-python-ms is set to -2), If you prefer lsp-python-ms, please set =lsp-python-ms-prefer-pyls= to =nil=.
+#+END_QUOTE
 
 Normally the [[https://github.com/Microsoft/python-language-server][python-language-server]] will be downloaded automatically if it doesn't
 exist while opening the python scripts.
