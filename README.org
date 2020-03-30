@@ -57,6 +57,10 @@ For development, you might find it useful to run =cask install=.
 
    Add the directories to =lsp-python-ms-extra-paths= or =PYTHONPATH=. Refer to [[https://github.com/microsoft/python-language-server/blob/master/TROUBLESHOOTING.md#unresolved-import-warnings][Troubleshooting - Unresolved import warnings]].
 
+2. Autocompletion doesn't work
+
+   The folder may have huge folders and files, and  the server takes a long time to index them. So please DO NOT put huge files in the project/workspace folder.
+
 * Credit
 
 All credit to [[https://cpbotha.net][cpbotha]] on [[https://vxlabs.com/2018/11/19/configuring-emacs-lsp-mode-and-microsofts-visual-studio-code-python-language-server/][vxlabs]]! This just tidies and packages his work there.
