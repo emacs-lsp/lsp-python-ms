@@ -212,7 +212,7 @@ here."
                                 (format "powershell -noprofile -noninteractive \
 -nologo -ex bypass Expand-Archive -path '%s' -dest '%s'" temp-file install-dir))
                                (t (user-error "Unable to extract '%s' to '%s'! \
-Please extact manually." temp-file install-dir)))))
+Please extract manually." temp-file install-dir)))))
 
       (lsp--info "Downloading Microsoft Python Language Server...")
 
