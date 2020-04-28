@@ -37,7 +37,6 @@
 
 ;; Forward declare functions
 (declare-function ffip-get-project-root-directory 'ffip)
-(declare-function lsp-client-on-notification 'lsp-mode)
 
 ;; Forward declare variable
 (defvar lsp-render-markdown-markup-content)
@@ -368,15 +367,6 @@ directory"
 
 WORKSPACE is just used for logging and _PARAMS is unused."
    (lsp--info "Microsoft Python language server started"))
-
-(defun lsp-python-ms--client-initialized (client)
-   "Callback to register and configure client after it's initialized.
-
-After CLIENT is initialized, this function is called to configure
-other handlers. "
-   (lsp-client-on-notification client "python/languageServerStarted"
-                               #'lsp-python-ms--language-server-started-callback)
-  (lsp-client-on-notification client "telemetry/event" #'ignore))
 
 ;; this gets called when we do lsp-describe-thing-at-point
 ;; see lsp-methods.el. As always, remove Microsoft's unwanted entities :(
