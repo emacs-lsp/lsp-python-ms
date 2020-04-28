@@ -36,7 +36,7 @@
 (require 'find-file-in-project nil 'noerror)
 
 ;; Forward declare functions
-(declare-function ffip-get-project-root-directory 'ffip)
+(declare-function ffip-get-project-root-directory "ext:find-file-in-project")
 
 ;; Forward declare variable
 (defvar lsp-render-markdown-markup-content)
