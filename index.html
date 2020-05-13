@@ -11,7 +11,7 @@
       
       
       <link rel="shortcut icon" href="images/logo.png">
-      <meta name="generator" content="mkdocs-1.1, mkdocs-material-5.1.5">
+      <meta name="generator" content="mkdocs-1.1, mkdocs-material-5.1.6">
     
     
       
@@ -19,7 +19,7 @@
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.df84b5fe.min.css">
+      <link rel="stylesheet" href="assets/stylesheets/main.4b9ffd7b.min.css">
       
       
     
@@ -184,9 +184,62 @@
       
     
     
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Home
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
+        </span>
+      </label>
+    
     <a href="." title="Home" class="md-nav__link md-nav__link--active">
       Home
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installing-the-executable" class="md-nav__link">
+    Installing the executable
+  </a>
+  
+    <nav class="md-nav" aria-label="Installing the executable">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nixos" class="md-nav__link">
+    NixOS
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#most-other-distros" class="md-nav__link">
+    Most other distros
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
     
   </li>
 
@@ -207,6 +260,43 @@
   
     
   
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installing-the-executable" class="md-nav__link">
+    Installing the executable
+  </a>
+  
+    <nav class="md-nav" aria-label="Installing the executable">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nixos" class="md-nav__link">
+    NixOS
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#most-other-distros" class="md-nav__link">
+    Most other distros
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -242,6 +332,34 @@
                           <span class="p">(</span><span class="nv">lsp</span><span class="p">))))</span>  <span class="c1">; or lsp-deferred</span>
 </code></pre></div>
 
+<h2 id="installing-the-executable">Installing the executable<a class="headerlink" href="#installing-the-executable" title="Permanent link">#</a></h2>
+<h3 id="nixos">NixOS<a class="headerlink" href="#nixos" title="Permanent link">#</a></h3>
+<p>Building the executable manually is difficult on NixOS, but it can be
+easily installed via the package manager. At the time of writing (May
+2020), it is not available on the 20.03 release, but can be acquired on
+the unstable branch.</p>
+<div class="highlight"><pre><span></span><code>nix-channel --add https://nixos.org/channels/nixos-unstable nixos
+nix-channel --update nixos
+</code></pre></div>
+
+<p>You can then install the executable by running <code>nix-env -iA
+nixpkgs.python-language-server</code> or by adding
+<code>nixpkgs.python-language-server</code> to your <code>configuration.nix</code> and
+creating a new generation. Note that
+<code>python37Packages.python-language-server</code> refers to Palintir's language
+server, not Microsoft's.</p>
+<p>Finally, ensure that Emacs knows where to find the executable by setting
+<code>lsp-python-ms-executable</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">use-package</span> <span class="nv">lsp-python-ms</span>
+  <span class="nb">:ensure</span> <span class="no">t</span>
+  <span class="nb">:hook</span> <span class="p">(</span><span class="nv">python-mode</span> <span class="o">.</span> <span class="p">(</span><span class="nb">lambda</span> <span class="p">()</span>
+                         <span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;lsp-python-ms</span><span class="p">)</span>
+                         <span class="p">(</span><span class="nv">lsp</span><span class="p">)))</span>
+  <span class="nb">:config</span>
+  <span class="p">(</span><span class="k">setq</span> <span class="nv">lsp-python-ms-executable</span> <span class="p">(</span><span class="nv">executable-find</span> <span class="s">&quot;python-language-server&quot;</span><span class="p">)))</span>
+</code></pre></div>
+
+<h3 id="most-other-distros">Most other distros<a class="headerlink" href="#most-other-distros" title="Permanent link">#</a></h3>
 <p>Normally the
 <a href="https://github.com/Microsoft/python-language-server">python-language-server</a>
 will be downloaded automatically if it doesn't exist while opening the
@@ -308,7 +426,7 @@ This just tidies and packages his work there.</p>
 <div class="md-source-date">
   <small>
     
-      Last update: May 3, 2020
+      Last update: May 13, 2020
     
   </small>
 </div>
@@ -375,8 +493,8 @@ This just tidies and packages his work there.</p>
       
     </div>
     
-      <script src="assets/javascripts/vendor.83fe6e3c.min.js"></script>
-      <script src="assets/javascripts/bundle.7e1cb91c.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      <script src="assets/javascripts/vendor.a0c4167b.min.js"></script>
+      <script src="assets/javascripts/bundle.fb26dd1d.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
       
       <script>
         app = initialize({
