@@ -17,6 +17,37 @@ A minimal ~use-package~ initialization might be:
                             (lsp))))  ; or lsp-deferred
 #+END_SRC
 
+** Installing the executable
+
+*** NixOS
+
+Building the executable manually is difficult on NixOS, but it can be easily installed via the package manager.
+At the time of writing (May 2020), it is not available on the 20.03 release, but can be acquired on the unstable branch.
+
+#+begin_src bash
+    nix-channel --add https://nixos.org/channels/nixos-unstable nixos
+    nix-channel --update nixos
+#+end_src
+
+You can then install the executable by running ~nix-env -iA nixpkgs.python-language-server~
+or by adding ~nixpkgs.python-language-server~ to your ~configuration.nix~ and creating a new generation.
+Note that ~python37Packages.python-language-server~ refers to Palintir's language server, not Microsoft's.
+
+Finally, ensure that Emacs knows where to find the executable by setting ~lsp-python-ms-executable~.
+
+#+begin_src elisp
+  (use-package lsp-python-ms
+    :ensure t
+    :hook (python-mode . (lambda ()
+                           (require 'lsp-python-ms)
+                           (lsp)))
+    :config
+    (setq lsp-python-ms-executable (executable-find "python-language-server")))
+
+#+end_src
+
+*** Most other distros
+
 Normally the [[https://github.com/Microsoft/python-language-server][python-language-server]] will be downloaded automatically if it doesn't
 exist while opening the python scripts.
 
