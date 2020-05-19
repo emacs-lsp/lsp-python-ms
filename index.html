@@ -11,7 +11,7 @@
       
       
       <link rel="shortcut icon" href="images/logo.png">
-      <meta name="generator" content="mkdocs-1.1, mkdocs-material-5.1.6">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.2.0">
     
     
       
@@ -19,7 +19,7 @@
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.4b9ffd7b.min.css">
+      <link rel="stylesheet" href="assets/stylesheets/main.18ac144a.min.css">
       
       
     
@@ -321,12 +321,14 @@
 <h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">#</a></h1>
 <p>Include <code>lsp-python-ms</code> in the configuration file:</p>
 <div class="highlight"><pre><span></span><code>(require &#39;lsp-python-ms)
+(setq lsp-python-ms-auto-install-server t)
 (add-hook &#39;python-mode-hook #&#39;lsp) ; or lsp-deferred
 </code></pre></div>
 
 <p>A minimal <code>use-package</code> initialization might be:</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">use-package</span> <span class="nv">lsp-python-ms</span>
   <span class="nb">:ensure</span> <span class="no">t</span>
+  <span class="nb">:init</span> <span class="p">(</span><span class="k">setq</span> <span class="nv">lsp-python-ms-auto-install-server</span> <span class="no">t</span><span class="p">)</span>
   <span class="nb">:hook</span> <span class="p">(</span><span class="nv">python-mode</span> <span class="o">.</span> <span class="p">(</span><span class="nb">lambda</span> <span class="p">()</span>
                           <span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;lsp-python-ms</span><span class="p">)</span>
                           <span class="p">(</span><span class="nv">lsp</span><span class="p">))))</span>  <span class="c1">; or lsp-deferred</span>
@@ -355,7 +357,7 @@ server, not Microsoft's.</p>
   <span class="nb">:hook</span> <span class="p">(</span><span class="nv">python-mode</span> <span class="o">.</span> <span class="p">(</span><span class="nb">lambda</span> <span class="p">()</span>
                          <span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;lsp-python-ms</span><span class="p">)</span>
                          <span class="p">(</span><span class="nv">lsp</span><span class="p">)))</span>
-  <span class="nb">:config</span>
+  <span class="nb">:init</span>
   <span class="p">(</span><span class="k">setq</span> <span class="nv">lsp-python-ms-executable</span> <span class="p">(</span><span class="nv">executable-find</span> <span class="s">&quot;python-language-server&quot;</span><span class="p">)))</span>
 </code></pre></div>
 
@@ -426,7 +428,7 @@ This just tidies and packages his work there.</p>
 <div class="md-source-date">
   <small>
     
-      Last update: May 13, 2020
+      Last update: May 19, 2020
     
   </small>
 </div>
@@ -493,15 +495,15 @@ This just tidies and packages his work there.</p>
       
     </div>
     
-      <script src="assets/javascripts/vendor.a0c4167b.min.js"></script>
-      <script src="assets/javascripts/bundle.fb26dd1d.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      <script src="assets/javascripts/vendor.d710d30a.min.js"></script>
+      <script src="assets/javascripts/bundle.5f27aba8.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
       
       <script>
         app = initialize({
           base: ".",
           features: [],
           search: Object.assign({
-            worker: "assets/javascripts/worker/search.37585f48.min.js"
+            worker: "assets/javascripts/worker/search.27c6a5e6.min.js"
           }, typeof search !== "undefined" && search)
         })
       </script>
