@@ -435,9 +435,9 @@ WORKSPACE is just used for logging and _PARAMS is unused."
   :initialized-fn (lambda (workspace)
                     (with-lsp-workspace workspace
                       (lsp--set-configuration (lsp-configuration-section "python"))))
-  :download-server-fn (lambda ()
+  :download-server-fn (lambda (client callback error-callback update?)
                         (when lsp-python-ms-auto-install-server
-                          (lsp-python-ms--install-server)))))
+                          (lsp-python-ms--install-server client callback error-callback update?)))))
 
 (provide 'lsp-python-ms)
 
