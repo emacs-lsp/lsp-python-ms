@@ -310,7 +310,7 @@ or projectile, or just return `default-directory'."
    (t default-directory)))
 
 ;; I based most of this on the vs.code implementation:
-;; https://github.com/Microsoft/vscode-python/blob/master/src/client/activation/languageServer/languageServer.ts#L219
+;; https://github.com/microsoft/vscode-python/blob/master/src/client/activation/languageServer/analysisOptions.ts
 ;; (it still took quite a while to get right, but here we are!)
 (defun lsp-python-ms--extra-init-params (&optional workspace)
   "Return form describing parameters for language server.
@@ -336,9 +336,7 @@ directory"
                          :maxDocumentationLineLength 0
                          :trimDocumentationText :json-false
                          :maxDocumentationTextLength 0)
-        :searchPaths ,(if lsp-python-ms-extra-paths
-                          (vconcat lsp-python-ms-extra-paths nil)
-                        pysyspath)
+        :searchPaths ,(vconcat lsp-python-ms-extra-paths pysyspath)
         :analysisUpdates t
         :asyncStartup t
         :logLevel ,lsp-python-ms-log-level
