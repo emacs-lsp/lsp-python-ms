@@ -88,7 +88,7 @@ For development, you might find it useful to run =cask install=.
 
 1. Unresolved import warnings
 
-   Add the directories to =lsp-python-ms-extra-paths= or =PYTHONPATH=. Refer to [[https://github.com/microsoft/python-language-server/blob/master/TROUBLESHOOTING.md#unresolved-import-warnings][Troubleshooting - Unresolved import warnings]].
+   Set workspace root of `lsp-mode` properly, and add the extra directories to =lsp-python-ms-extra-paths= or =PYTHONPATH=. Refer to [[https://github.com/microsoft/python-language-server/blob/master/TROUBLESHOOTING.md#unresolved-import-warnings][Troubleshooting - Unresolved import warnings]].
 
 2. Autocompletion doesn't work
 
