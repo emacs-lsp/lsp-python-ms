@@ -61,7 +61,7 @@
 ;; If this is nil, the language server will write cache files in a directory
 ;; sibling to the root of every project you visit")
 
-(defcustom lsp-python-ms-extra-paths '()
+(defcustom lsp-python-ms-extra-paths []
   "A list of additional paths to search for python packages.
 
 This should be a list of paths corresponding to additional python
@@ -69,7 +69,7 @@ library directories you want to search for completions.  Paths
 should be as they are (or would appear) in sys.path.  Paths will
 be prepended to the search path, and so will shadow duplicate
 names in search paths returned by the interpreter."
-  :type '(repeat directory)
+  :type 'lsp-string-vector
   :group 'lsp-python-ms)
 (make-variable-buffer-local 'lsp-python-ms-extra-paths)
 
