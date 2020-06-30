@@ -102,6 +102,14 @@ stable, beta or daily."
   :type 'string
   :group 'lsp-python-ms)
 
+(defcustom lsp-python-ms-completion-add-brackets "true"
+  "Whether to add brackets after completion of functions."
+  :type '(choice
+          (const "true")
+          (const "false"))
+  :type 'string
+  :group 'lsp-python-ms)
+
 ;; See https://github.com/microsoft/python-language-server/blob/master/src/Analysis/Ast/Impl/Definitions/AnalysisOptions.cs
 (defcustom lsp-python-ms-cache "None"
   "The cache level of analysis for Microsoft Python Language Server."
@@ -407,7 +415,8 @@ WORKSPACE is just used for logging and _PARAMS is unused."
     (lsp--info "Microsoft Python language server is analyzing...done")))
 
 (lsp-register-custom-settings
- `(("python.analysis.cachingLevel" lsp-python-ms-cache)
+ `(("python.autoComplete.addBrackets" lsp-python-ms-completion-add-brackets)
+   ("python.analysis.cachingLevel" lsp-python-ms-cache)
    ("python.analysis.errors" lsp-python-ms-errors)
    ("python.analysis.warnings" lsp-python-ms-warnings)
    ("python.analysis.information" lsp-python-ms-information)
