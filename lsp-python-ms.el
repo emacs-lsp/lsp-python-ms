@@ -61,7 +61,7 @@
 ;; If this is nil, the language server will write cache files in a directory
 ;; sibling to the root of every project you visit")
 
-(defcustom lsp-python-ms-extra-paths []
+(defcustom lsp-python-ms-extra-paths '()
   "A list of additional paths to search for python packages.
 
 This should be a list of paths corresponding to additional python
@@ -69,7 +69,7 @@ library directories you want to search for completions.  Paths
 should be as they are (or would appear) in sys.path.  Paths will
 be prepended to the search path, and so will shadow duplicate
 names in search paths returned by the interpreter."
-  :type 'lsp-string-vector
+  :type '(repeat directory)
   :group 'lsp-python-ms)
 (make-variable-buffer-local 'lsp-python-ms-extra-paths)
 
@@ -421,8 +421,8 @@ WORKSPACE is just used for logging and _PARAMS is unused."
    ("python.analysis.warnings" lsp-python-ms-warnings)
    ("python.analysis.information" lsp-python-ms-information)
    ("python.analysis.disabled" lsp-python-ms-disabled)
-   ("python.analysis.autoSearchPaths" ,(<= (length lsp-python-ms-extra-paths) 0) t)
-   ("python.autoComplete.extraPaths" lsp-python-ms-extra-paths)))
+   ("python.analysis.autoSearchPaths" (lambda () (<= (length lsp-python-ms-extra-paths) 0)) t)
+   ("python.autoComplete.extraPaths" (lambda () (vconcat lsp-python-ms-extra-paths)))))
 
 (dolist (mode lsp-python-ms-extra-major-modes)
   (add-to-list 'lsp-language-id-configuration `(,mode . "python")))
