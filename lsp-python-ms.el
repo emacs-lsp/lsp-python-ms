@@ -421,7 +421,7 @@ WORKSPACE is just used for logging and _PARAMS is unused."
    ("python.analysis.warnings" lsp-python-ms-warnings)
    ("python.analysis.information" lsp-python-ms-information)
    ("python.analysis.disabled" lsp-python-ms-disabled)
-   ("python.analysis.autoSearchPaths" ,(<= (length lsp-python-ms-extra-paths) 0) t)
+   ("python.analysis.autoSearchPaths" (lambda () (<= (length lsp-python-ms-extra-paths) 0)) t)
    ("python.autoComplete.extraPaths" lsp-python-ms-extra-paths)))
 
 (dolist (mode lsp-python-ms-extra-major-modes)
