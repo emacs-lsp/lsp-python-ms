@@ -308,7 +308,7 @@ After stopping or killing the process, retry to update."
               (dominating-conda-name (or (bound-and-true-p conda-env-current-name)
                                          (conda--get-name-from-env-yml dominating-yaml-file)))
               (dominating-conda-python (expand-file-name
-                                        lsp-python-ms-python-executable-cmd
+                                        (file-name-nondirectory lsp-python-ms-python-executable-cmd)
                                         (expand-file-name
                                          conda-env-executables-dir
                                          (conda-env-name-to-dir dominating-conda-name)))))
