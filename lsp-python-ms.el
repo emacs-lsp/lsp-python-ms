@@ -61,20 +61,6 @@
 ;; If this is nil, the language server will write cache files in a directory
 ;; sibling to the root of every project you visit")
 
-(defcustom lsp-python-ms-pyright-server-cmd '("pyright-langserver" "--stdio")
-  "command specification for pyright langauge server."
-  :type 'list
-  :group 'lsp-python-ms)
-
-(defcustom lsp-python-ms-use-pyright nil
-  "Use pyright as language server, or as add-on."
-  :type '(radio
-          (const :tag "Off" nil)
-          (const :tag "On" t)
-          (const :tag "Addon" 'addon))
-  :options '(t 'addon)
-  :group 'lsp-python-ms)
-
 (defcustom lsp-python-ms-extra-paths []
   "A list of additional paths to search for python packages.
 
@@ -428,116 +414,38 @@ WORKSPACE is just used for logging and _PARAMS is unused."
           (lsp--spinner-stop))))
     (lsp--info "Microsoft Python language server is analyzing...done")))
 
+(lsp-register-custom-settings
+ `(("python.autoComplete.addBrackets" lsp-python-ms-completion-add-brackets)
+   ("python.analysis.cachingLevel" lsp-python-ms-cache)
+   ("python.analysis.errors" lsp-python-ms-errors)
+   ("python.analysis.warnings" lsp-python-ms-warnings)
+   ("python.analysis.information" lsp-python-ms-information)
+   ("python.analysis.disabled" lsp-python-ms-disabled)
+   ("python.analysis.autoSearchPaths" (lambda () (<= (length lsp-python-ms-extra-paths) 0)) t)
+   ("python.autoComplete.extraPaths" lsp-python-ms-extra-paths)))
+
 (dolist (mode lsp-python-ms-extra-major-modes)
   (add-to-list 'lsp-language-id-configuration `(,mode . "python")))
 
-
-;; pyright we should be able to pass this to the language server as a
-;; configuration change; but pyright doesn't seem to support that as
-;; of this writing. Instead, it queries the _client_ configuration for
-;; these parameters...
-;;
-;; So, we pick the right files out of the hashtable and had those back to the language server
-
-(defun lsp-python-ms-pyright--make-venv-ht (&optional workspace)
-  (let* ((workspace-root (or (when workspace (lsp--workspace-root workspace))
-                             (lsp-python-ms--workspace-root)))
-         (python (lsp-python-ms-locate-python workspace-root))
-         (python-bin (directory-file-name (file-name-directory python)))
-         (python-env-dir (directory-file-name (file-name-directory python-bin)))
-         (python-env (file-name-nondirectory python-env-dir))
-         (ht (ht-create))
-         (pht (ht-create)) ; {pyright: pht}
-         (pyht (ht-create))  ; {python: ptht}
-         (pyaht (ht-create))) ; {python : {analysos: pyaht}}
-    (if (string-match "env" python)
-        (progn
-          (ht-set pyht "venvPath" python-env-dir)
-          (ht-set pht "venv" python-env)))
-    (cl-destructuring-bind (pyver pysyspath pyintpath)
-        (lsp-python-ms--get-python-ver-and-syspath workspace-root)
-      (ht-set pyaht "extraPaths" pysyspath)
-      (ht-set pyht "pythonPath" pyintpath)
-      (ht-set pyaht "logLevel" "trace")
-      (ht-set pht "useLibraryCodeForTypes" t)
-
-      (ht-set ht "python" pyht)
-      (ht-set pyht "analysis" pyaht)
-      (ht-set ht "pyright" pht)
-      ht)))
-(defun lsp-python-ms-pyright--get-local-python-syspath ()
-  (ht-get (ht-get (ht-get (lsp-python-ms-pyright--make-venv-ht) "python") "analysis") "extraPaths"))
-(defun lsp-python-ms-pyright--get-local-python-intpath ()
-  (ht-get (ht-get (lsp-python-ms-pyright--make-venv-ht) "python") "pythonPath"))
-(defun lsp-python-ms-pyright--get-local-python-venvdir ()
-    (ht-get (ht-get (lsp-python-ms-pyright--make-venv-ht) "python") "venvPath"))
-(defun lsp-python-ms-pyright--get-local-python-venv ()
-  (ht-get (ht-get (lsp-python-ms-pyright--make-venv-ht) "pyright") "venv"))
-
-(lsp-register-custom-settings
- `(
-   ;; pyright appears to look for extraPaths in a slightly different
-   ;; section than the main language server.
-   ("python.autoComplete.extraPaths" lsp-python-ms-extra-paths)
-   ("python.analysis.extraPaths" lsp-python-ms-pyright--get-local-python-syspath)
-
-   ("pyright.useLibraryCodeForTypes" t t)
-   ("python.analysis.autoSearchPaths"
-    (lambda () (or lsp-python-ms-use-pyright
-                   (<= (length lsp-python-ms-extra-paths) 0))) t)
-   ("python.analysis.autoSearchPaths" t t)
-   ("python.analysis.cachingLevel" lsp-python-ms-cache)
-   ("python.analysis.disabled" lsp-python-ms-disabled)
-   ("python.analysis.errors" lsp-python-ms-errors)
-   ("python.analysis.information" lsp-python-ms-information)
-   ("python.analysis.logLevel" lsp-python-ms-log-level)
-   ("python.analysis.warnings" lsp-python-ms-warnings)
-   ("python.autoComplete.addBrackets" lsp-python-ms-completion-add-brackets)
-   ("python.pythonPath" lsp-python-ms-pyright--get-local-python-intpath)
-   ("python.venv" lsp-python-ms-pyright--get-local-python-venv)
-   ("python.venvPath" lsp-python-ms-pyright--get-local-python-venvdir))
- )
-
-(when lsp-python-ms-use-pyright
-  (lsp-register-client
-   (make-lsp-client
-    :new-connection (lsp-stdio-connection
-                     (lambda () lsp-pyright-server-cmd)
-                     (lambda ()
-                       (and (cl-first lsp-pyright-server-cmd)
-                            (executable-find (cl-first lsp-pyright-server-cmd)))))
-    :major-modes '(python-mode)
-    :server-id 'mspyright
-    :add-on? (eq lsp-python-ms-use-pyright 'addon)
-    :priority 1
-    :initialized-fn (lambda (workspace)
-                      (with-lsp-workspace workspace
-                        (lsp--set-configuration (lsp-configuration-section "python"))))
-    :notification-handlers (lsp-ht ("pyright/beginProgress" 'ignore)
-                                   ("pyright/reportProgress" 'ignore)
-                                   ("pyright/endProgress" 'ignore)))))
-
-
-(when (or (not lsp-python-ms-use-pyright) (eq lsp-python-ms-use-pyright 'addon))
-  (lsp-register-client
-   (make-lsp-client
-    :new-connection (lsp-stdio-connection (lambda () lsp-python-ms-executable)
-                                          (lambda () (f-exists? lsp-python-ms-executable)))
-    :major-modes (append '(python-mode) lsp-python-ms-extra-major-modes)
-    :server-id 'mspyls
-    :priority 1
-    :initialization-options 'lsp-python-ms--extra-init-params
-    :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started-callback)
-                                   ("telemetry/event" 'ignore)
-                                   ("python/reportProgress" 'lsp-python-ms--report-progress-callback)
-                                   ("python/beginProgress" 'lsp-python-ms--begin-progress-callback)
-                                   ("python/endProgress" 'lsp-python-ms--end-progress-callback))
-    :initialized-fn (lambda (workspace)
-                      (with-lsp-workspace workspace
-                        (lsp--set-configuration (lsp-configuration-section "python"))))
-    :download-server-fn (lambda (client callback error-callback update?)
-                          (when lsp-python-ms-auto-install-server
-                            (lsp-python-ms--install-server client callback error-callback update?))))))
+(lsp-register-client
+ (make-lsp-client
+  :new-connection (lsp-stdio-connection (lambda () lsp-python-ms-executable)
+                                        (lambda () (f-exists? lsp-python-ms-executable)))
+  :major-modes (append '(python-mode) lsp-python-ms-extra-major-modes)
+  :server-id 'mspyls
+  :priority 1
+  :initialization-options 'lsp-python-ms--extra-init-params
+  :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started-callback)
+                                 ("telemetry/event" 'ignore)
+                                 ("python/reportProgress" 'lsp-python-ms--report-progress-callback)
+                                 ("python/beginProgress" 'lsp-python-ms--begin-progress-callback)
+                                 ("python/endProgress" 'lsp-python-ms--end-progress-callback))
+  :initialized-fn (lambda (workspace)
+                    (with-lsp-workspace workspace
+                      (lsp--set-configuration (lsp-configuration-section "python"))))
+  :download-server-fn (lambda (client callback error-callback update?)
+                        (when lsp-python-ms-auto-install-server
+                          (lsp-python-ms--install-server client callback error-callback update?)))))
 
 (provide 'lsp-python-ms)
 
