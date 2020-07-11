@@ -61,6 +61,16 @@
 ;; If this is nil, the language server will write cache files in a directory
 ;; sibling to the root of every project you visit")
 
+(defcustom lsp-python-ms-guess-env t
+  "Should the language server guess the paths
+
+If true, check for pyenv environment/version files, then conda
+environment files, then project-local virtual environments, then
+fall back to the python on the head of PATH. Otherwise, just use
+the python on the head of PATH
+"
+  :type 'boolean
+  :group 'lsp-python-ms)
 (defcustom lsp-python-ms-extra-paths []
   "A list of additional paths to search for python packages.
 
@@ -323,18 +333,22 @@ After stopping or killing the process, retry to update."
 (defun lsp-python-ms--valid-python (path)
   (and path (f-executable? path) path))
 
-(defun lsp-python-ms-locate-python ()
+(defun lsp-python-ms-locate-python (&optional dir)
   "Look for virtual environments local to the workspace"
-  (let* ((pyenv-python (lsp-python-ms--dominating-pyenv-python))
-         (venv-python (lsp-python-ms--dominating-venv-python))
-         (conda-python (lsp-python-ms--dominating-conda-python))
+  (let* ((pyenv-python (lsp-python-ms--dominating-pyenv-python dir))
+         (venv-python (lsp-python-ms--dominating-venv-python dir))
+         (conda-python (lsp-python-ms--dominating-conda-python dir))
          (sys-python (executable-find lsp-python-ms-python-executable-cmd)))
     ;; pythons by preference: local pyenv version, local conda version
-    (cond
-     ( (lsp-python-ms--valid-python venv-python) )
-     ( (lsp-python-ms--valid-python pyenv-python) )
-     ( (lsp-python-ms--valid-python conda-python) )
-     ( (lsp-python-ms--valid-python sys-python) ))))
+
+    (if lsp-python-ms-guess env
+      (cond
+       ( (lsp-python-ms--valid-python venv-python) )
+       ( (lsp-python-ms--valid-python pyenv-python) )
+       ( (lsp-python-ms--valid-python conda-python) )
+       ( (lsp-python-ms--valid-python sys-python) ))
+      (cond
+       ((lsp-python-ms--valid-python sys-python))))))
 ;; it's crucial that we send the correct Python version to MS PYLS,
 ;; else it returns no docs in many cases furthermore, we send the
 ;; current Python's (can be virtualenv) sys.path as searchPaths
