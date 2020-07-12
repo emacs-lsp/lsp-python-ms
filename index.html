@@ -324,15 +324,18 @@
 <div class="highlight"><pre><span></span><code>(require &#39;lsp-python-ms)
 (setq lsp-python-ms-auto-install-server t)
 (add-hook &#39;python-mode-hook #&#39;lsp) ; or lsp-deferred
+(lsp-python-ms-initialize)
 </code></pre></div>
 
 <p>A minimal <code>use-package</code> initialization might be:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">use-package</span> <span class="nv">lsp-python-ms</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">use-package</span> <span class="nv">lsp</span>
+  <span class="nb">:hook</span> <span class="p">(</span><span class="nv">python-mode</span> <span class="o">.</span> <span class="nv">lsp</span><span class="p">))</span>             <span class="c1">; or lsp-deferred</span>
+
+<span class="p">(</span><span class="nb">use-package</span> <span class="nv">lsp-python-ms</span>
+  <span class="nb">:after</span> <span class="nv">python</span>
   <span class="nb">:ensure</span> <span class="no">t</span>
   <span class="nb">:init</span> <span class="p">(</span><span class="k">setq</span> <span class="nv">lsp-python-ms-auto-install-server</span> <span class="no">t</span><span class="p">)</span>
-  <span class="nb">:hook</span> <span class="p">(</span><span class="nv">python-mode</span> <span class="o">.</span> <span class="p">(</span><span class="nb">lambda</span> <span class="p">()</span>
-                          <span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;lsp-python-ms</span><span class="p">)</span>
-                          <span class="p">(</span><span class="nv">lsp</span><span class="p">))))</span>  <span class="c1">; or lsp-deferred</span>
+  <span class="nb">:config</span> <span class="p">(</span><span class="nv">lsp-python-ms-initialize</span><span class="p">))</span>
 </code></pre></div>
 
 <h2 id="installing-the-executable">Installing the executable<a class="headerlink" href="#installing-the-executable" title="Permanent link">#</a></h2>
@@ -353,13 +356,15 @@ creating a new generation. Note that
 server, not Microsoft's.</p>
 <p>Finally, ensure that Emacs knows where to find the executable by setting
 <code>lsp-python-ms-executable</code>.</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">use-package</span> <span class="nv">lsp-python-ms</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">use-package</span> <span class="nv">lsp</span>
+  <span class="nb">:hook</span> <span class="p">(</span><span class="nv">python-mode</span> <span class="o">.</span> <span class="nv">lsp</span><span class="p">))</span>             <span class="c1">; or lsp-deferred</span>
+
+<span class="p">(</span><span class="nb">use-package</span> <span class="nv">lsp-python-ms</span>
+  <span class="nb">:after</span> <span class="nv">python</span>
   <span class="nb">:ensure</span> <span class="no">t</span>
-  <span class="nb">:hook</span> <span class="p">(</span><span class="nv">python-mode</span> <span class="o">.</span> <span class="p">(</span><span class="nb">lambda</span> <span class="p">()</span>
-                         <span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;lsp-python-ms</span><span class="p">)</span>
-                         <span class="p">(</span><span class="nv">lsp</span><span class="p">)))</span>
-  <span class="nb">:init</span>
-  <span class="p">(</span><span class="k">setq</span> <span class="nv">lsp-python-ms-executable</span> <span class="p">(</span><span class="nv">executable-find</span> <span class="s">&quot;python-language-server&quot;</span><span class="p">)))</span>
+  <span class="nb">:init</span> <span class="p">(</span><span class="k">setq</span> <span class="nv">lsp-python-ms-auto-install-server</span> <span class="no">t</span><span class="p">)</span>
+  <span class="nb">:custom</span> <span class="p">(</span><span class="nv">lsp-python-ms-executable</span> <span class="p">(</span><span class="nv">executable-find</span> <span class="s">&quot;python-language-server&quot;</span><span class="p">))</span>
+  <span class="nb">:config</span> <span class="p">(</span><span class="nv">lsp-python-ms-initialize</span><span class="p">))</span>
 </code></pre></div>
 
 <h3 id="most-other-distros">Most other distros<a class="headerlink" href="#most-other-distros" title="Permanent link">#</a></h3>
@@ -431,7 +436,7 @@ This just tidies and packages his work there.</p>
 <div class="md-source-date">
   <small>
     
-      Last update: July 11, 2020
+      Last update: July 12, 2020
     
   </small>
 </div>
