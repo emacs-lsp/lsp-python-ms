@@ -7,19 +7,16 @@ Include ~lsp-python-ms~ in the configuration file:
 (require 'lsp-python-ms)
 (setq lsp-python-ms-auto-install-server t)
 (add-hook 'python-mode-hook #'lsp) ; or lsp-deferred
-(lsp-python-ms-initialize)
 #+END_SRC
 
 A minimal ~use-package~ initialization might be:
 #+BEGIN_SRC elisp
-  (use-package lsp
-    :hook (python-mode . lsp))             ; or lsp-deferred
-
   (use-package lsp-python-ms
-    :after python
     :ensure t
     :init (setq lsp-python-ms-auto-install-server t)
-    :config (lsp-python-ms-initialize))
+    :hook (python-mode . (lambda ()
+                            (require 'lsp-python-ms)
+                            (lsp))))  ; or lsp-deferred
 #+END_SRC
 
 ** Installing the executable
@@ -41,15 +38,14 @@ Note that ~python37Packages.python-language-server~ refers to Palintir's languag
 Finally, ensure that Emacs knows where to find the executable by setting ~lsp-python-ms-executable~.
 
 #+begin_src elisp
-  (use-package lsp
-    :hook (python-mode . lsp))             ; or lsp-deferred
-
   (use-package lsp-python-ms
-    :after python
     :ensure t
-    :init (setq lsp-python-ms-auto-install-server t)
-    :custom (lsp-python-ms-executable (executable-find "python-language-server"))
-    :config (lsp-python-ms-initialize))
+    :hook (python-mode . (lambda ()
+                           (require 'lsp-python-ms)
+                           (lsp)))
+    :init
+    (setq lsp-python-ms-executable (executable-find "python-language-server")))
+
 #+end_src
 
 *** Most other distros
