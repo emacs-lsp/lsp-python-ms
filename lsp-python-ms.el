@@ -379,6 +379,20 @@ directory"
 WORKSPACE is just used for logging and _PARAMS is unused."
    (lsp--info "Microsoft Python language server started"))
 
+;; this gets called when we do lsp-describe-thing-at-point
+;; see lsp-methods.el. As always, remove Microsoft's unwanted entities :(
+(setq lsp-render-markdown-markup-content #'lsp-python-ms--filter-nbsp)
+
+;; lsp-ui-doc--extract gets called when hover docs are requested
+;; as always, we have to remove Microsoft's unnecessary &nbsp; entities
+(advice-add 'lsp-ui-doc--extract
+            :filter-return #'lsp-python-ms--filter-nbsp)
+
+;; lsp-ui-sideline--format-info gets called when lsp-ui wants to show
+;; hover info in the sideline again &nbsp; has to be removed
+(advice-add 'lsp-ui-sideline--format-info
+            :filter-return #'lsp-python-ms--filter-nbsp)
+
 (defun lsp-python-ms--report-progress-callback (_workspace params)
   "Log progress information."
   (when (and (arrayp params) (> (length params) 0))
@@ -400,55 +414,38 @@ WORKSPACE is just used for logging and _PARAMS is unused."
           (lsp--spinner-stop))))
     (lsp--info "Microsoft Python language server is analyzing...done")))
 
-;;;###autoload
-(defun lsp-python-ms-initialize ()
-  "Initialize `lsp-python-ms'."
-  ;; this gets called when we do lsp-describe-thing-at-point
-  ;; see lsp-methods.el. As always, remove Microsoft's unwanted entities :(
-  (setq lsp-render-markdown-markup-content #'lsp-python-ms--filter-nbsp)
+(lsp-register-custom-settings
+ `(("python.autoComplete.addBrackets" lsp-python-ms-completion-add-brackets)
+   ("python.analysis.cachingLevel" lsp-python-ms-cache)
+   ("python.analysis.errors" lsp-python-ms-errors)
+   ("python.analysis.warnings" lsp-python-ms-warnings)
+   ("python.analysis.information" lsp-python-ms-information)
+   ("python.analysis.disabled" lsp-python-ms-disabled)
+   ("python.analysis.autoSearchPaths" (lambda () (<= (length lsp-python-ms-extra-paths) 0)) t)
+   ("python.autoComplete.extraPaths" lsp-python-ms-extra-paths)))
 
-  ;; lsp-ui-doc--extract gets called when hover docs are requested
-  ;; as always, we have to remove Microsoft's unnecessary &nbsp; entities
-  (advice-add 'lsp-ui-doc--extract
-              :filter-return #'lsp-python-ms--filter-nbsp)
+(dolist (mode lsp-python-ms-extra-major-modes)
+  (add-to-list 'lsp-language-id-configuration `(,mode . "python")))
 
-  ;; lsp-ui-sideline--format-info gets called when lsp-ui wants to show
-  ;; hover info in the sideline again &nbsp; has to be removed
-  (advice-add 'lsp-ui-sideline--format-info
-              :filter-return #'lsp-python-ms--filter-nbsp)
-
-  (lsp-register-custom-settings
-   `(("python.autoComplete.addBrackets" lsp-python-ms-completion-add-brackets)
-     ("python.analysis.cachingLevel" lsp-python-ms-cache)
-     ("python.analysis.errors" lsp-python-ms-errors)
-     ("python.analysis.warnings" lsp-python-ms-warnings)
-     ("python.analysis.information" lsp-python-ms-information)
-     ("python.analysis.disabled" lsp-python-ms-disabled)
-     ("python.analysis.autoSearchPaths" (lambda () (<= (length lsp-python-ms-extra-paths) 0)) t)
-     ("python.autoComplete.extraPaths" lsp-python-ms-extra-paths)))
-
-  (dolist (mode lsp-python-ms-extra-major-modes)
-    (add-to-list 'lsp-language-id-configuration `(,mode . "python")))
-
-  (lsp-register-client
-   (make-lsp-client
-    :new-connection (lsp-stdio-connection (lambda () lsp-python-ms-executable)
-                                          (lambda () (f-exists? lsp-python-ms-executable)))
-    :major-modes (append '(python-mode) lsp-python-ms-extra-major-modes)
-    :server-id 'mspyls
-    :priority 1
-    :initialization-options 'lsp-python-ms--extra-init-params
-    :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started-callback)
-                                   ("telemetry/event" 'ignore)
-                                   ("python/reportProgress" 'lsp-python-ms--report-progress-callback)
-                                   ("python/beginProgress" 'lsp-python-ms--begin-progress-callback)
-                                   ("python/endProgress" 'lsp-python-ms--end-progress-callback))
-    :initialized-fn (lambda (workspace)
-                      (with-lsp-workspace workspace
-                        (lsp--set-configuration (lsp-configuration-section "python"))))
-    :download-server-fn (lambda (client callback error-callback update?)
-                          (when lsp-python-ms-auto-install-server
-                            (lsp-python-ms--install-server client callback error-callback update?))))))
+(lsp-register-client
+ (make-lsp-client
+  :new-connection (lsp-stdio-connection (lambda () lsp-python-ms-executable)
+                                        (lambda () (f-exists? lsp-python-ms-executable)))
+  :major-modes (append '(python-mode) lsp-python-ms-extra-major-modes)
+  :server-id 'mspyls
+  :priority 1
+  :initialization-options 'lsp-python-ms--extra-init-params
+  :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started-callback)
+                                 ("telemetry/event" 'ignore)
+                                 ("python/reportProgress" 'lsp-python-ms--report-progress-callback)
+                                 ("python/beginProgress" 'lsp-python-ms--begin-progress-callback)
+                                 ("python/endProgress" 'lsp-python-ms--end-progress-callback))
+  :initialized-fn (lambda (workspace)
+                    (with-lsp-workspace workspace
+                      (lsp--set-configuration (lsp-configuration-section "python"))))
+  :download-server-fn (lambda (client callback error-callback update?)
+                        (when lsp-python-ms-auto-install-server
+                          (lsp-python-ms--install-server client callback error-callback update?)))))
 
 (provide 'lsp-python-ms)
 
