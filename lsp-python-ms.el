@@ -498,46 +498,54 @@ WORKSPACE is just used for logging and _PARAMS is unused."
    ("python.venvPath" lsp-python-ms-pyright--get-local-python-venvdir))
  )
 
-(when lsp-python-ms-use-pyright
-  (lsp-register-client
-   (make-lsp-client
-    :new-connection (lsp-stdio-connection
-                     (lambda () lsp-python-ms-pyright-server-cmd)
-                     (lambda ()
-                       (and (cl-first lsp-python-ms-pyright-server-cmd)
-                            (executable-find (cl-first lsp-python-ms-pyright-server-cmd)))))
-    :major-modes '(python-mode)
-    :server-id 'mspyright
-    :multi-root t
-    :add-on? (eq lsp-python-ms-use-pyright 'addon)
-    :priority 1
-    :initialized-fn (lambda (workspace)
-                      (with-lsp-workspace workspace
-                        (lsp--set-configuration (lsp-configuration-section "python"))))
-    :notification-handlers (lsp-ht ("pyright/beginProgress" 'ignore)
-                                   ("pyright/reportProgress" 'ignore)
-                                   ("pyright/endProgress" 'ignore)))))
+(defun lsp-python-ms--activate-p (filename &optional _)
+  "Should pyright be activated?"
+  (and (or (not lsp-python-ms-use-pyright) (eq lsp-python-ms-use-pyright 'addon))
+       (eval `(derived-mode-p 'python-mode ,@lsp-python-ms-extra-major-modes))))
 
-(when (or (not lsp-python-ms-use-pyright) (eq lsp-python-ms-use-pyright 'addon))
-  (lsp-register-client
-   (make-lsp-client
-    :new-connection (lsp-stdio-connection (lambda () lsp-python-ms-executable)
-                                          (lambda () (f-exists? lsp-python-ms-executable)))
-    :major-modes (append '(python-mode) lsp-python-ms-extra-major-modes)
-    :server-id 'mspyls
-    :priority 1
-    :initialization-options 'lsp-python-ms--extra-init-params
-    :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started-callback)
-                                   ("telemetry/event" 'ignore)
-                                   ("python/reportProgress" 'lsp-python-ms--report-progress-callback)
-                                   ("python/beginProgress" 'lsp-python-ms--begin-progress-callback)
-                                   ("python/endProgress" 'lsp-python-ms--end-progress-callback))
-    :initialized-fn (lambda (workspace)
-                      (with-lsp-workspace workspace
-                        (lsp--set-configuration (lsp-configuration-section "python"))))
-    :download-server-fn (lambda (client callback error-callback update?)
-                          (when lsp-python-ms-auto-install-server
-                            (lsp-python-ms--install-server client callback error-callback update?))))))
+(defun lsp-python-ms--pyright-activate-p (filename &optional _)
+  "Should pyright be activated?"
+  (and lsp-python-ms-use-pyright
+       (eval `(derived-mode-p 'python-mode ,@lsp-python-ms-extra-major-modes))))
+
+(lsp-register-client
+ (make-lsp-client
+  :activation-fn 'lsp-python-ms--pyright-activate-p
+  :new-connection (lsp-stdio-connection
+                   (lambda () lsp-python-ms-pyright-server-cmd)
+                   (lambda ()
+                     (and (cl-first lsp-python-ms-pyright-server-cmd)
+                          (executable-find (cl-first lsp-python-ms-pyright-server-cmd)))))
+  :server-id 'mspyright
+  :multi-root t
+  :add-on? (eq lsp-python-ms-use-pyright 'addon)
+  :priority 1
+  :initialized-fn (lambda (workspace)
+                    (with-lsp-workspace workspace
+                      (lsp--set-configuration (lsp-configuration-section "python"))))
+  :notification-handlers (lsp-ht ("pyright/beginProgress" 'ignore)
+                                 ("pyright/reportProgress" 'ignore)
+                                 ("pyright/endProgress" 'ignore))))
+
+(lsp-register-client
+ (make-lsp-client
+  :activation-fn 'lsp-python-ms--activate-p
+  :new-connection (lsp-stdio-connection (lambda () lsp-python-ms-executable)
+                                        (lambda () (f-exists? lsp-python-ms-executable)))
+  :server-id 'mspyls
+  :priority 1
+  :initialization-options 'lsp-python-ms--extra-init-params
+  :notification-handlers (lsp-ht ("python/languageServerStarted" 'lsp-python-ms--language-server-started-callback)
+                                 ("telemetry/event" 'ignore)
+                                 ("python/reportProgress" 'lsp-python-ms--report-progress-callback)
+                                 ("python/beginProgress" 'lsp-python-ms--begin-progress-callback)
+                                 ("python/endProgress" 'lsp-python-ms--end-progress-callback))
+  :initialized-fn (lambda (workspace)
+                    (with-lsp-workspace workspace
+                      (lsp--set-configuration (lsp-configuration-section "python"))))
+  :download-server-fn (lambda (client callback error-callback update?)
+                        (when lsp-python-ms-auto-install-server
+                          (lsp-python-ms--install-server client callback error-callback update?)))))
 
 (provide 'lsp-python-ms)
 
