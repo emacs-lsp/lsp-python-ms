@@ -508,6 +508,7 @@ WORKSPACE is just used for logging and _PARAMS is unused."
                             (executable-find (cl-first lsp-python-ms-pyright-server-cmd)))))
     :major-modes '(python-mode)
     :server-id 'mspyright
+    :multi-root t
     :add-on? (eq lsp-python-ms-use-pyright 'addon)
     :priority 1
     :initialized-fn (lambda (workspace)
