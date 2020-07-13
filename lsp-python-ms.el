@@ -341,7 +341,7 @@ After stopping or killing the process, retry to update."
          (sys-python (executable-find lsp-python-ms-python-executable-cmd)))
     ;; pythons by preference: local pyenv version, local conda version
 
-    (if lsp-python-ms-guess env
+    (if lsp-python-ms-guess-env
       (cond
        ( (lsp-python-ms--valid-python venv-python) )
        ( (lsp-python-ms--valid-python pyenv-python) )
@@ -352,12 +352,13 @@ After stopping or killing the process, retry to update."
 ;; it's crucial that we send the correct Python version to MS PYLS,
 ;; else it returns no docs in many cases furthermore, we send the
 ;; current Python's (can be virtualenv) sys.path as searchPaths
-(defun lsp-python-ms--get-python-ver-and-syspath (workspace-root)
+(defun lsp-python-ms--get-python-ver-and-syspath (&optional workspace-root)
   "Return list with pyver-string and list of python search paths.
 
 The WORKSPACE-ROOT will be prepended to the list of python search
 paths and then the entire list will be json-encoded."
   (when-let* ((python (lsp-python-ms-locate-python))
+              (workspace-root (or workspace-root "."))
               (default-directory workspace-root)
               (init "from __future__ import print_function; import sys; \
 sys.path = list(filter(lambda p: p != '', sys.path)); import json;")
