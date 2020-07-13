@@ -502,10 +502,10 @@ WORKSPACE is just used for logging and _PARAMS is unused."
   (lsp-register-client
    (make-lsp-client
     :new-connection (lsp-stdio-connection
-                     (lambda () lsp-pyright-server-cmd)
+                     (lambda () lsp-python-ms-pyright-server-cmd)
                      (lambda ()
-                       (and (cl-first lsp-pyright-server-cmd)
-                            (executable-find (cl-first lsp-pyright-server-cmd)))))
+                       (and (cl-first lsp-python-ms-pyright-server-cmd)
+                            (executable-find (cl-first lsp-python-ms-pyright-server-cmd)))))
     :major-modes '(python-mode)
     :server-id 'mspyright
     :add-on? (eq lsp-python-ms-use-pyright 'addon)
