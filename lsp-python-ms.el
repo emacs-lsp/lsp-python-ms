@@ -483,7 +483,7 @@ WORKSPACE is just used for logging and _PARAMS is unused."
 
    ("pyright.useLibraryCodeForTypes" t t)
    ("python.analysis.autoSearchPaths"
-    (lambda () (or lsp-python-ms-use-pyright
+    (lambda () (or (not (not lsp-python-ms-use-pyright))
                    (<= (length lsp-python-ms-extra-paths) 0))) t)
    ("python.analysis.autoSearchPaths" t t)
    ("python.analysis.cachingLevel" lsp-python-ms-cache)
@@ -516,7 +516,6 @@ WORKSPACE is just used for logging and _PARAMS is unused."
     :notification-handlers (lsp-ht ("pyright/beginProgress" 'ignore)
                                    ("pyright/reportProgress" 'ignore)
                                    ("pyright/endProgress" 'ignore)))))
-
 
 (when (or (not lsp-python-ms-use-pyright) (eq lsp-python-ms-use-pyright 'addon))
   (lsp-register-client
