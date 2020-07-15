@@ -501,31 +501,12 @@ WORKSPACE is just used for logging and _PARAMS is unused."
 (defun lsp-python-ms--activate-p (filename &optional _)
   "Should pyright be activated?"
   (and (or (not lsp-python-ms-use-pyright) (eq lsp-python-ms-use-pyright 'addon))
-       (eval `(derived-mode-p 'python-mode ,@lsp-python-ms-extra-major-modes))))
+       (not (not (eval `(derived-mode-p 'python-mode ,@lsp-python-ms-extra-major-modes))))))
 
 (defun lsp-python-ms--pyright-activate-p (filename &optional _)
   "Should pyright be activated?"
   (and lsp-python-ms-use-pyright
-       (eval `(derived-mode-p 'python-mode ,@lsp-python-ms-extra-major-modes))))
-
-(lsp-register-client
- (make-lsp-client
-  :activation-fn 'lsp-python-ms--pyright-activate-p
-  :new-connection (lsp-stdio-connection
-                   (lambda () lsp-python-ms-pyright-server-cmd)
-                   (lambda ()
-                     (and (cl-first lsp-python-ms-pyright-server-cmd)
-                          (executable-find (cl-first lsp-python-ms-pyright-server-cmd)))))
-  :server-id 'mspyright
-  :multi-root t
-  :add-on? (eq lsp-python-ms-use-pyright 'addon)
-  :priority 1
-  :initialized-fn (lambda (workspace)
-                    (with-lsp-workspace workspace
-                      (lsp--set-configuration (lsp-configuration-section "python"))))
-  :notification-handlers (lsp-ht ("pyright/beginProgress" 'ignore)
-                                 ("pyright/reportProgress" 'ignore)
-                                 ("pyright/endProgress" 'ignore))))
+       (not (not (eval `(derived-mode-p 'python-mode ,@lsp-python-ms-extra-major-modes))))))
 
 (lsp-register-client
  (make-lsp-client
@@ -546,6 +527,26 @@ WORKSPACE is just used for logging and _PARAMS is unused."
   :download-server-fn (lambda (client callback error-callback update?)
                         (when lsp-python-ms-auto-install-server
                           (lsp-python-ms--install-server client callback error-callback update?)))))
+(lsp-register-client
+ (make-lsp-client
+  :activation-fn 'lsp-python-ms--pyright-activate-p
+  :new-connection (lsp-stdio-connection
+                   (lambda () lsp-python-ms-pyright-server-cmd)
+                   (lambda ()
+                     (and (cl-first lsp-python-ms-pyright-server-cmd)
+                          (executable-find (cl-first lsp-python-ms-pyright-server-cmd)))))
+  :server-id 'mspyright
+  :multi-root t
+  :add-on? (eq lsp-python-ms-use-pyright 'addon)
+  :priority 1
+  :initialized-fn (lambda (workspace)
+                    (with-lsp-workspace workspace
+                      (lsp--set-configuration (lsp-configuration-section "python"))))
+  :notification-handlers (lsp-ht ("pyright/beginProgress" 'ignore)
+                                 ("pyright/reportProgress" 'ignore)
+                                 ("pyright/endProgress" 'ignore))))
+
+
 
 (provide 'lsp-python-ms)
 
