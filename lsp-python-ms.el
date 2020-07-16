@@ -3,7 +3,7 @@
 ;; Author: Charl Botha
 ;; Maintainer: Andrew Christianson, Vincent Zhang
 ;; Version: 0.7.0
-;; Package-Requires: ((emacs "25.1") (cl-lib "0.6.1") (lsp-mode "6.0"))
+;; Package-Requires: ((emacs "25.1") (lsp-mode "6.0"))
 ;; Homepage: https://github.com/andrew-christianson/lsp-python-ms
 ;; Keywords: languages tools
 
@@ -30,10 +30,12 @@
 
 ;;; Code:
 (require 'cl-lib)
-(require 'lsp-mode)
-(require 'json)
-(require 'projectile nil 'noerror)
+(require 'conda nil 'noerror)
 (require 'find-file-in-project nil 'noerror)
+(require 'json)
+(require 'lsp-mode)
+(require 'projectile nil 'noerror)
+
 
 ;; Forward declare functions
 (declare-function ffip-get-project-root-directory "ext:find-file-in-project")
@@ -61,6 +63,16 @@
 ;; If this is nil, the language server will write cache files in a directory
 ;; sibling to the root of every project you visit")
 
+(defcustom lsp-python-ms-guess-env t
+  "Should the language server guess the paths
+
+If true, check for pyenv environment/version files, then conda
+environment files, then project-local virtual environments, then
+fall back to the python on the head of PATH. Otherwise, just use
+the python on the head of PATH
+"
+  :type 'boolean
+  :group 'lsp-python-ms)
 (defcustom lsp-python-ms-extra-paths []
   "A list of additional paths to search for python packages.
 
@@ -267,41 +279,120 @@ After stopping or killing the process, retry to update."
   (interactive)
   (lsp-python-ms--install-server nil #'ignore #'lsp--error t))
 
-(defun lsp-python-ms-locate-python ()
-  "Look for virtual environments local to the workspace"
-  (let* ((venv (locate-dominating-file default-directory "venv/"))
-         (sys-python (executable-find lsp-python-ms-python-executable-cmd))
-         (venv-python (f-expand "venv/bin/python" venv)))
-    (cond
-     ((and venv (f-executable? venv-python)) venv-python)
-     (sys-python))))
+(defun lsp-python-ms--venv-dir (dir)
+  "does directory contain a virtualenv"
+  (let ((dirs (f-directories dir)))
+    (car (seq-filter #'lsp-python-ms--venv-python dirs))))
 
+(defun lsp-python-ms--venv-python (dir)
+  "is a directory a virtualenv"
+  (let*
+      ((python? (and t (f-expand "bin/python" dir)))
+       (python3? (and python? (f-expand "bin/python3" dir)))
+       (python (and python3?
+                    (cond ((f-executable? python?) python?)
+                          ((f-executable? python3?) python3?)
+                          (t nil))))
+       (not-system
+        (and python
+             (not (string-equal (f-parent (f-parent (f-parent python)))
+                                (expand-file-name "~"))))))
+    (if not-system
+        (and not-system python))))
+
+(defun lsp-python-ms--dominating-venv-python (&optional dir)
+  "Look for directories that look like venvs"
+  (let* ((path (or dir default-directory))
+         (dominating-venv (locate-dominating-file path #'lsp-python-ms--venv-dir)))
+    (if dominating-venv (lsp-python-ms--venv-python (lsp-python-ms--venv-dir dominating-venv)))))
+
+(defun lsp-python-ms--dominating-conda-python (&optional dir)
+  "locate dominating conda environment"
+  (let*
+      ((path (and t (or dir default-directory)))
+       (yamls (and path
+                   '("environment.yml" "environment.yaml"
+                     "env.yml" "env.yaml" "dev-environment.yml"
+                     "dev-environment.yaml")))
+       (dominating-yaml (and yamls
+                             (seq-map (lambda (file)
+                                        (if
+                                            (locate-dominating-file path file)
+                                            (expand-file-name file
+                                                              (locate-dominating-file path file))))
+              yamls)))
+       (dominating-yaml-file (and dominating-yaml
+                                  (car (seq-filter
+                                        (lambda (file) file) dominating-yaml))))
+       (dominating-conda-name (and dominating-yaml-file
+                                   (fboundp 'conda--get-name-from-env-yml)
+                                   (or
+                                    (bound-and-true-p conda-env-current-name)
+                                    (conda--get-name-from-env-yml dominating-yaml-file))))
+       (dominating-conda-python (and dominating-conda-name
+                                     (expand-file-name
+                                      (file-name-nondirectory lsp-python-ms-python-executable-cmd)
+                                      (expand-file-name conda-env-executables-dir
+                                                        (conda-env-name-to-dir dominating-conda-name))))))
+    (if dominating-conda-python dominating-conda-python)))
+
+(defun lsp-python-ms--dominating-pyenv-python (&optional dir)
+  "locate dominating pyenv-managed python"
+  (let ((dir (or dir default-directory)))
+    (and (locate-dominating-file dir ".python-version")
+         (string-trim (shell-command-to-string "pyenv which python")))))
+
+(defun lsp-python-ms--valid-python (path)
+  (and path (f-executable? path) path))
+
+(defun lsp-python-ms-locate-python (&optional dir)
+  "Look for virtual environments local to the workspace"
+  (let* ((pyenv-python (lsp-python-ms--dominating-pyenv-python dir))
+         (venv-python (lsp-python-ms--dominating-venv-python dir))
+         (conda-python (lsp-python-ms--dominating-conda-python dir))
+         (sys-python (executable-find lsp-python-ms-python-executable-cmd)))
+    ;; pythons by preference: local pyenv version, local conda version
+
+    (if lsp-python-ms-guess-env
+      (cond
+       ( (lsp-python-ms--valid-python venv-python) )
+       ( (lsp-python-ms--valid-python pyenv-python) )
+       ( (lsp-python-ms--valid-python conda-python) )
+       ( (lsp-python-ms--valid-python sys-python) ))
+      (cond
+       ((lsp-python-ms--valid-python sys-python))))))
 ;; it's crucial that we send the correct Python version to MS PYLS,
 ;; else it returns no docs in many cases furthermore, we send the
 ;; current Python's (can be virtualenv) sys.path as searchPaths
-(defun lsp-python-ms--get-python-ver-and-syspath (workspace-root)
+(defun lsp-python-ms--get-python-ver-and-syspath (&optional workspace-root)
   "Return list with pyver-string and list of python search paths.
 
 The WORKSPACE-ROOT will be prepended to the list of python search
 paths and then the entire list will be json-encoded."
-  (when-let ((python (lsp-python-ms-locate-python))
-             (default-directory workspace-root)
-             (init "from __future__ import print_function; import sys; \
-sys.path = list(filter(lambda p: p != '', sys.path)); import json;")
-             (ver "v=(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));")
-             (sp (concat "sys.path.insert(0, '" workspace-root "'); p=sys.path;"))
-             (ex "e=sys.executable;")
-             (val "print(json.dumps({\"version\":v,\"paths\":p,\"executable\":e}))"))
-    (with-temp-buffer
-      (call-process python nil t nil "-c" (concat init ver sp ex val))
-      (let* ((json-array-type 'vector)
-             (json-key-type 'string)
-             (json-object-type 'hash-table)
-             (json-string (buffer-string))
-             (json-hash (json-read-from-string json-string)))
-        (list (gethash "version" json-hash)
-              (gethash "paths" json-hash)
-              (gethash "executable" json-hash))))))
+  (let*
+      ((python (and t (lsp-python-ms-locate-python)))
+       (workspace-root (and python (or workspace-root ".")))
+       (default-directory (and workspace-root workspace-root))
+       (init (and default-directory
+                  "from __future__ import print_function; import sys; sys.path = list(filter(lambda p: p != '', sys.path)); import json;"))
+       (ver (and init "v=(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));"))
+       (sp (and ver (concat "sys.path.insert(0, '" workspace-root "'); p=sys.path;")))
+       (ex (and sp "e=sys.executable;"))
+       (val (and ex "print(json.dumps({\"version\":v,\"paths\":p,\"executable\":e}))")))
+    (if val
+        (with-temp-buffer
+          (call-process python nil t nil "-c"
+                        (concat init ver sp ex val))
+          (let*
+              ((json-array-type 'vector)
+               (json-key-type 'string)
+               (json-object-type 'hash-table)
+               (json-string (buffer-string))
+               (json-hash (json-read-from-string json-string)))
+            (list
+             (gethash "version" json-hash)
+             (gethash "paths" json-hash)
+             (gethash "executable" json-hash)))))))
 
 (defun lsp-python-ms--workspace-root ()
   "Get the path of the root of the current workspace.
