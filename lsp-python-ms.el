@@ -38,9 +38,11 @@
 
 
 ;; Forward declare functions
+(declare-function conda-env-name-to-dir "ext:conda")
 (declare-function ffip-get-project-root-directory "ext:find-file-in-project")
 
 ;; Forward declare variable
+(defvar conda-env-executables-dir)
 (defvar lsp-render-markdown-markup-content)
 
 ;; Group declaration
@@ -304,43 +306,40 @@ After stopping or killing the process, retry to update."
   "Look for directories that look like venvs"
   (let* ((path (or dir default-directory))
          (dominating-venv (locate-dominating-file path #'lsp-python-ms--venv-dir)))
-    (if dominating-venv (lsp-python-ms--venv-python (lsp-python-ms--venv-dir dominating-venv)))))
+    (when dominating-venv
+      (lsp-python-ms--venv-python (lsp-python-ms--venv-dir dominating-venv)))))
 
 (defun lsp-python-ms--dominating-conda-python (&optional dir)
   "locate dominating conda environment"
-  (let*
-      ((path (and t (or dir default-directory)))
-       (yamls (and path
-                   '("environment.yml" "environment.yaml"
-                     "env.yml" "env.yaml" "dev-environment.yml"
-                     "dev-environment.yaml")))
-       (dominating-yaml (and yamls
-                             (seq-map (lambda (file)
-                                        (if
-                                            (locate-dominating-file path file)
+  (let* ((path (or dir default-directory))
+         (yamls (and path
+                     '("environment.yml" "environment.yaml"
+                       "env.yml" "env.yaml" "dev-environment.yml"
+                       "dev-environment.yaml")))
+         (dominating-yaml (and yamls
+                               (seq-map (lambda (file)
+                                          (when (locate-dominating-file path file)
                                             (expand-file-name file
                                                               (locate-dominating-file path file))))
-              yamls)))
-       (dominating-yaml-file (and dominating-yaml
-                                  (car (seq-filter
-                                        (lambda (file) file) dominating-yaml))))
-       (dominating-conda-name (and dominating-yaml-file
-                                   (fboundp 'conda--get-name-from-env-yml)
-                                   (or
-                                    (bound-and-true-p conda-env-current-name)
-                                    (conda--get-name-from-env-yml dominating-yaml-file))))
-       (dominating-conda-python (and dominating-conda-name
-                                     (expand-file-name
-                                      (file-name-nondirectory lsp-python-ms-python-executable-cmd)
-                                      (expand-file-name conda-env-executables-dir
-                                                        (conda-env-name-to-dir dominating-conda-name))))))
-    (if dominating-conda-python dominating-conda-python)))
+                                        yamls)))
+         (dominating-yaml-file (and dominating-yaml
+                                    (car (seq-filter
+                                          (lambda (file) file) dominating-yaml))))
+         (dominating-conda-name (and dominating-yaml-file
+                                     (fboundp 'conda--get-name-from-env-yml)
+                                     (or (bound-and-true-p conda-env-current-name)
+                                         (conda--get-name-from-env-yml dominating-yaml-file)))))
+    (when dominating-conda-name
+      (expand-file-name
+       (file-name-nondirectory lsp-python-ms-python-executable-cmd)
+       (expand-file-name conda-env-executables-dir
+                         (conda-env-name-to-dir dominating-conda-name))))))
 
 (defun lsp-python-ms--dominating-pyenv-python (&optional dir)
   "locate dominating pyenv-managed python"
   (let ((dir (or dir default-directory)))
-    (and (locate-dominating-file dir ".python-version")
-         (string-trim (shell-command-to-string "pyenv which python")))))
+    (when (locate-dominating-file dir ".python-version")
+      (string-trim (shell-command-to-string "pyenv which python")))))
 
 (defun lsp-python-ms--valid-python (path)
   (and path (f-executable? path) path))
@@ -354,13 +353,12 @@ After stopping or killing the process, retry to update."
     ;; pythons by preference: local pyenv version, local conda version
 
     (if lsp-python-ms-guess-env
-      (cond
-       ( (lsp-python-ms--valid-python venv-python) )
-       ( (lsp-python-ms--valid-python pyenv-python) )
-       ( (lsp-python-ms--valid-python conda-python) )
-       ( (lsp-python-ms--valid-python sys-python) ))
-      (cond
-       ((lsp-python-ms--valid-python sys-python))))))
+        (cond ((lsp-python-ms--valid-python venv-python))
+              ((lsp-python-ms--valid-python pyenv-python))
+              ((lsp-python-ms--valid-python conda-python))
+              ((lsp-python-ms--valid-python sys-python)))
+      (cond ((lsp-python-ms--valid-python sys-python))))))
+
 ;; it's crucial that we send the correct Python version to MS PYLS,
 ;; else it returns no docs in many cases furthermore, we send the
 ;; current Python's (can be virtualenv) sys.path as searchPaths
@@ -379,20 +377,19 @@ paths and then the entire list will be json-encoded."
        (sp (and ver (concat "sys.path.insert(0, '" workspace-root "'); p=sys.path;")))
        (ex (and sp "e=sys.executable;"))
        (val (and ex "print(json.dumps({\"version\":v,\"paths\":p,\"executable\":e}))")))
-    (if val
-        (with-temp-buffer
-          (call-process python nil t nil "-c"
-                        (concat init ver sp ex val))
-          (let*
-              ((json-array-type 'vector)
+    (when val
+      (with-temp-buffer
+        (call-process python nil t nil "-c"
+                      (concat init ver sp ex val))
+        (let* ((json-array-type 'vector)
                (json-key-type 'string)
                (json-object-type 'hash-table)
                (json-string (buffer-string))
                (json-hash (json-read-from-string json-string)))
-            (list
-             (gethash "version" json-hash)
-             (gethash "paths" json-hash)
-             (gethash "executable" json-hash)))))))
+          (list
+           (gethash "version" json-hash)
+           (gethash "paths" json-hash)
+           (gethash "executable" json-hash)))))))
 
 (defun lsp-python-ms--workspace-root ()
   "Get the path of the root of the current workspace.
