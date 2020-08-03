@@ -95,6 +95,27 @@ For development, you might find it useful to run =cask install=.
 
    The folder may have huge folders and files, and  the server takes a long time to index them. So please DO NOT put huge files in the project/workspace folder.
 
+3. Set path of the Python executable for each project/workspace
+
+   Set the variable =lsp-python-ms-python-executable= before the `lsp-mode` being loaded.
+
+   First, add =hack-local-variables-hook= in `init.el` to achieve loading `lsp-mode` after the `.dir-locals.el` file of each project/workspace being loaded.
+
+   #+BEGIN_SRC emacs-lisp
+     (add-hook 'hack-local-variables-hook
+	       (lambda ()
+		 (when (derived-mode-p 'python-mode)
+		   (require 'lsp-python-ms)
+		   (lsp)))) ; or lsp-deferred
+   #+END_SRC
+
+   Second, create `.dir-locals.el` file in the root directory of project to specify the varibale =lsp-python-ms-python-executable= for the project/workspace.
+
+   #+BEGIN_SRC emacs-lisp
+     ((python-mode . ((lsp-python-ms-python-executable . "/.../bin/python"))))
+   #+END_SRC
+
+
 * Credit
 
 All credit to [[https://cpbotha.net][cpbotha]] on [[https://vxlabs.com/2018/11/19/configuring-emacs-lsp-mode-and-microsofts-visual-studio-code-python-language-server/][vxlabs]]! This just tidies and packages his work there.
