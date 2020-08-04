@@ -357,7 +357,7 @@ After stopping or killing the process, retry to update."
 
     (if lsp-python-ms-guess-env
         (cond ((lsp-python-ms--valid-python lsp-python-ms-python-executable))
-	      ((lsp-python-ms--valid-python venv-python))
+	          ((lsp-python-ms--valid-python venv-python))
               ((lsp-python-ms--valid-python pyenv-python))
               ((lsp-python-ms--valid-python conda-python))
               ((lsp-python-ms--valid-python sys-python)))
