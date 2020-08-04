@@ -75,6 +75,12 @@ the python on the head of PATH
 "
   :type 'boolean
   :group 'lsp-python-ms)
+
+(defcustom lsp-python-ms-python-executable nil
+  "Path to specify the Python executable for the Microsoft Python Language Server."
+  :type '(file :must-match t)
+  :group 'lsp-python-ms)
+
 (defcustom lsp-python-ms-extra-paths []
   "A list of additional paths to search for python packages.
 
@@ -350,7 +356,8 @@ After stopping or killing the process, retry to update."
     ;; pythons by preference: local pyenv version, local conda version
 
     (if lsp-python-ms-guess-env
-        (cond ((lsp-python-ms--valid-python venv-python))
+        (cond ((lsp-python-ms--valid-python lsp-python-ms-python-executable))
+	      ((lsp-python-ms--valid-python venv-python))
               ((lsp-python-ms--valid-python pyenv-python))
               ((lsp-python-ms--valid-python conda-python))
               ((lsp-python-ms--valid-python sys-python)))
