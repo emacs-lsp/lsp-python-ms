@@ -1,4 +1,7 @@
 [[https://github.com/emacs-lsp/lsp-python-ms/actions][https://github.com/emacs-lsp/lsp-python-ms/workflows/CI/badge.svg?branch=master]]
+[[https://melpa.org/#/lsp-python-ms][https://melpa.org/packages/lsp-python-ms-badge.svg]]
+[[https://stable.melpa.org/#/doom-modeline][https://stable.melpa.org/packages/doom-modeline-badge.svg]]
+[[License][http://img.shields.io/:license-bsd3-blue.svg]]
 
 =lsp-mode= client leveraging Microsoft's [[https://github.com/Microsoft/python-language-server][python-language-server]].
 
@@ -116,7 +119,6 @@ For development, you might find it useful to run =cask install=.
    #+BEGIN_SRC emacs-lisp
      ((python-mode . ((lsp-python-ms-python-executable . "/.../bin/python"))))
    #+END_SRC
-
 
 * Credit
 
