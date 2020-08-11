@@ -285,12 +285,12 @@ After stopping or killing the process, retry to update."
   (lsp-python-ms--install-server nil #'ignore #'lsp--error t))
 
 (defun lsp-python-ms--venv-dir (dir)
-  "does directory contain a virtualenv"
+  "Check if the directory contains a virtualenv."
   (let ((dirs (f-directories dir)))
     (car (seq-filter #'lsp-python-ms--venv-python dirs))))
 
 (defun lsp-python-ms--venv-python (dir)
-  "is a directory a virtualenv"
+  "Check if a directory is a virtualenv."
   (let*
       ((python? (and t (f-expand "bin/python" dir)))
        (python3? (and python? (f-expand "bin/python3" dir)))
@@ -306,12 +306,13 @@ After stopping or killing the process, retry to update."
         (and not-system python))))
 
 (defun lsp-python-ms--dominating-venv-python (&optional dir)
-  "Look for directories that look like venvs"
-  (let ((dominating-venv (locate-dominating-file (or dir default-directory) #'lsp-python-ms--venv-python)))
-    (when dominating-venv (lsp-python-ms--venv-python dominating-venv))))
+  "Look for directories that look like venvs."
+  (when-let ((dominating-venv (locate-dominating-file (or dir default-directory)
+                                                      #'lsp-python-ms--venv-python)))
+    (lsp-python-ms--venv-python dominating-venv)))
 
 (defun lsp-python-ms--dominating-conda-python (&optional dir)
-  "locate dominating conda environment"
+  "Locate dominating conda environment."
   (let* ((path (or dir default-directory))
          (yamls (and path
                      '("environment.yml" "environment.yaml"
@@ -337,7 +338,7 @@ After stopping or killing the process, retry to update."
                          (conda-env-name-to-dir dominating-conda-name))))))
 
 (defun lsp-python-ms--dominating-pyenv-python (&optional dir)
-  "locate dominating pyenv-managed python"
+  "Locate dominating pyenv-managed python."
   (let ((dir (or dir default-directory)))
     (when (locate-dominating-file dir ".python-version")
       (string-trim (shell-command-to-string "pyenv which python")))))
