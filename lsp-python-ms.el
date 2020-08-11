@@ -2,7 +2,7 @@
 
 ;; Author: Charl Botha
 ;; Maintainer: Andrew Christianson, Vincent Zhang
-;; Version: 0.7.0
+;; Version: 0.7.1
 ;; Package-Requires: ((emacs "25.1") (lsp-mode "6.0"))
 ;; Homepage: https://github.com/emacs-lsp/lsp-python-ms
 ;; Keywords: languages tools
