@@ -351,8 +351,7 @@ After stopping or killing the process, retry to update."
   (let* ((pyenv-python (lsp-python-ms--dominating-pyenv-python dir))
          (venv-python (lsp-python-ms--dominating-venv-python dir))
          (conda-python (lsp-python-ms--dominating-conda-python dir))
-         (sys-python (or (executable-find lsp-python-ms-python-executable-cmd)
-                         (executable-find lsp-python-ms-python-executable-cmd t))))
+         (sys-python (executable-find lsp-python-ms-python-executable-cmd t)))
     ;; pythons by preference: local pyenv version, local conda version
 
     (if lsp-python-ms-guess-env
