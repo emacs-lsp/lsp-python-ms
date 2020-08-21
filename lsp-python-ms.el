@@ -104,6 +104,11 @@ set as `python3' to let ms-pyls use python 3 environments."
   :type 'string
   :group 'lsp-python-ms)
 
+(defcustom lsp-python-ms-prefer-remote-env t
+  "If Non-nil, will prefer remote python environment."
+  :type 'boolean
+  :group 'lsp-python-ms)
+
 (defcustom lsp-python-ms-executable (concat lsp-python-ms-dir
                                             "Microsoft.Python.LanguageServer"
                                             (if (eq system-type 'windows-nt) ".exe" ""))
@@ -118,7 +123,7 @@ set as `python3' to let ms-pyls use python 3 environments."
 
 (defcustom lsp-python-ms-nupkg-channel "stable"
   "The channel of nupkg for the Microsoft Python Language Server:
-stable, beta or daily."
+  stable, beta or daily."
   :type 'string
   :group 'lsp-python-ms)
 
@@ -186,9 +191,9 @@ stable, beta or daily."
 (defcustom lsp-python-ms-extra-major-modes '()
     "A list of additional major modes in which to activate.
 
-In addition to the python-mode, you may wish the Microsoft Python
-Language Server to activate in other major modes. If so, list them
-here."
+  In addition to the python-mode, you may wish the Microsoft Python
+  Language Server to activate in other major modes. If so, list them
+  here."
   :type 'list
   :group 'lsp-python-ms)
 
@@ -239,9 +244,9 @@ here."
                                         install-dir temp-file install-dir))
                                ((executable-find "powershell")
                                 (format "powershell -noprofile -noninteractive \
--nologo -ex bypass Expand-Archive -path '%s' -dest '%s'" temp-file install-dir))
+  -nologo -ex bypass Expand-Archive -path '%s' -dest '%s'" temp-file install-dir))
                                (t (user-error "Unable to extract '%s' to '%s'! \
-Please check unzip, powershell or extract manually." temp-file install-dir)))))
+  Please check unzip, powershell or extract manually." temp-file install-dir)))))
 
       (lsp--info "Downloading Microsoft Python Language Server...")
 
@@ -279,8 +284,8 @@ Please check unzip, powershell or extract manually." temp-file install-dir)))))
 (defun lsp-python-ms-update-server ()
   "Update Microsoft Python Language Server.
 
-On Windows, if the server is running, the updating will fail.
-After stopping or killing the process, retry to update."
+  On Windows, if the server is running, the updating will fail.
+  After stopping or killing the process, retry to update."
   (interactive)
   (lsp-python-ms--install-server nil #'ignore #'lsp--error t))
 
@@ -351,7 +356,8 @@ After stopping or killing the process, retry to update."
   (let* ((pyenv-python (lsp-python-ms--dominating-pyenv-python dir))
          (venv-python (lsp-python-ms--dominating-venv-python dir))
          (conda-python (lsp-python-ms--dominating-conda-python dir))
-         (sys-python (executable-find lsp-python-ms-python-executable-cmd t)))
+         (sys-python (executable-find lsp-python-ms-python-executable-cmd
+                                      lsp-python-ms-prefer-remote-env)))
     ;; pythons by preference: local pyenv version, local conda version
 
     (if lsp-python-ms-guess-env
@@ -368,18 +374,18 @@ After stopping or killing the process, retry to update."
 (defun lsp-python-ms--get-python-ver-and-syspath (&optional workspace-root)
   "Return list with pyver-string and list of python search paths.
 
-The WORKSPACE-ROOT will be prepended to the list of python search
-paths and then the entire list will be json-encoded."
+  The WORKSPACE-ROOT will be prepended to the list of python search
+  paths and then the entire list will be json-encoded."
   (let*
       ((python (and t (lsp-python-ms-locate-python)))
        (workspace-root (and python (or workspace-root ".")))
        (default-directory (and workspace-root workspace-root))
        (init (and default-directory
                   "from __future__ import print_function; import sys; sys.path = list(filter(lambda p: p != '', sys.path)); import json;"))
-       (ver (and init "v=(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));"))
-       (sp (and ver (concat "sys.path.insert(0, '" workspace-root "'); p=sys.path;")))
-       (ex (and sp "e=sys.executable;"))
-       (val (and ex "print(json.dumps({\"version\":v,\"paths\":p,\"executable\":e}))")))
+  (ver (and init "v=(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));"))
+  (sp (and ver (concat "sys.path.insert(0, '" workspace-root "'); p=sys.path;")))
+  (ex (and sp "e=sys.executable;"))
+  (val (and ex "print(json.dumps({\"version\":v,\"paths\":p,\"executable\":e}))")))
     (when val
       (with-temp-buffer
         (call-process python nil t nil "-c"
