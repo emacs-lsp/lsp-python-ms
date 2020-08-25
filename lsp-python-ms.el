@@ -356,8 +356,9 @@ set as `python3' to let ms-pyls use python 3 environments."
   (let* ((pyenv-python (lsp-python-ms--dominating-pyenv-python dir))
          (venv-python (lsp-python-ms--dominating-venv-python dir))
          (conda-python (lsp-python-ms--dominating-conda-python dir))
-         (sys-python (executable-find lsp-python-ms-python-executable-cmd
-                                      lsp-python-ms-prefer-remote-env)))
+         (sys-python (if (>= emacs-major-version 27)
+                         (executable-find lsp-python-ms-python-executable-cmd lsp-python-ms-prefer-remote-env)
+                       (executable-find lsp-python-ms-python-executable-cmd))))
     ;; pythons by preference: local pyenv version, local conda version
 
     (if lsp-python-ms-guess-env
