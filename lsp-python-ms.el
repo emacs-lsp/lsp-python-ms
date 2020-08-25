@@ -106,7 +106,7 @@ set as `python3' to let ms-pyls use python 3 environments."
 
 (defcustom lsp-python-ms-prefer-remote-env t
   "If Non-nil, will prefer remote python environment.
-Only available in Emacs 27+."
+Only available in Emacs 27 and above."
   :type 'boolean
   :group 'lsp-python-ms)
 
