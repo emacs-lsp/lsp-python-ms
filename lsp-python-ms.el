@@ -313,8 +313,9 @@ Only available in Emacs 27 and above."
 
 (defun lsp-python-ms--dominating-venv-python (&optional dir)
   "Look for directories that look like venvs."
-  (when-let ((dominating-venv (locate-dominating-file (or dir default-directory)
-                                                      #'lsp-python-ms--venv-python)))
+  (when-let ((dominating-venv
+              (or (locate-dominating-file (or dir default-directory) #'lsp-python-ms--venv-python)
+                  (lsp-python-ms--venv-dir (locate-dominating-file (or dir default-directory) #'lsp-python-ms--venv-dir)))))
     (lsp-python-ms--venv-python dominating-venv)))
 
 (defun lsp-python-ms--dominating-conda-python (&optional dir)
