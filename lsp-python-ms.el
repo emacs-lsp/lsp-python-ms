@@ -292,9 +292,8 @@ Only available in Emacs 27 and above."
 
 (defun lsp-python-ms--venv-dir (dir)
   "Check if the directory contains a virtualenv."
-  (when dir
-    (let ((dirs (f-directories dir)))
-      (car (seq-filter #'lsp-python-ms--venv-python dirs)))))
+  (let ((dirs (and dir (f-directories dir))))
+    (car (seq-filter #'lsp-python-ms--venv-python dirs))))
 
 (defun lsp-python-ms--venv-python (dir)
   "Check if a directory is a virtualenv."
@@ -304,12 +303,10 @@ Only available in Emacs 27 and above."
                       (cond ((f-executable? python?) python?)
                             ((f-executable? python3?) python3?)
                             (t nil))))
-         (not-system
-          (and python
-               (not (string-equal (f-parent (f-parent (f-parent python)))
-                                  (expand-file-name "~"))))))
-    (if not-system
-        (and not-system python))))
+         (not-system (and python
+                          (not (string-equal (f-parent (f-parent (f-parent python)))
+                                             (expand-file-name "~"))))))
+    (and not-system python)))
 
 (defun lsp-python-ms--dominating-venv-python (&optional dir)
   "Look for directories that look like venvs."
