@@ -376,16 +376,15 @@ After stopping or killing the process, retry to update."
 
 The WORKSPACE-ROOT will be prepended to the list of python search
 paths and then the entire list will be json-encoded."
-  (let*
-      ((python (and t (lsp-python-ms-locate-python)))
-       (workspace-root (and python (or workspace-root ".")))
-       (default-directory (and workspace-root workspace-root))
-       (init (and default-directory
-                  "from __future__ import print_function; import sys; sys.path = list(filter(lambda p: p != '', sys.path)); import json;"))
-       (ver (and init "v=(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));"))
-       (sp (and ver (concat "sys.path.insert(0, '" workspace-root "'); p=sys.path;")))
-       (ex (and sp "e=sys.executable;"))
-       (val (and ex "print(json.dumps({\"version\":v,\"paths\":p,\"executable\":e}))")))
+  (let* ((python (and t (lsp-python-ms-locate-python)))
+         (workspace-root (and python (or workspace-root ".")))
+         (default-directory (and workspace-root workspace-root))
+         (init (and default-directory
+                    "from __future__ import print_function; import sys; sys.path = list(filter(lambda p: p != '', sys.path)); import json;"))
+         (ver (and init "v=(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));"))
+         (sp (and ver (concat "sys.path.insert(0, '" workspace-root "'); p=sys.path;")))
+         (ex (and sp "e=sys.executable;"))
+         (val (and ex "print(json.dumps({\"version\":v,\"paths\":p,\"executable\":e}))")))
     (when val
       (with-temp-buffer
         (call-process python nil t nil "-c"
@@ -430,17 +429,16 @@ directory"
     (cl-destructuring-bind (pyver pysyspath pyintpath)
         (lsp-python-ms--get-python-ver-and-syspath workspace-root)
       `(:interpreter
-        (:properties (
-                      :InterpreterPath ,pyintpath
-                      :UseDefaultDatabase t
-                      :Version ,pyver))
+        (:properties
+         (:InterpreterPath ,pyintpath :UseDefaultDatabase t :Version ,pyver))
         ;; preferredFormat "markdown" or "plaintext"
         ;; experiment to find what works best -- over here mostly plaintext
-        :displayOptions (:preferredFormat "markdown"
-                                          :trimDocumentationLines :json-false
-                                          :maxDocumentationLineLength 0
-                                          :trimDocumentationText :json-false
-                                          :maxDocumentationTextLength 0)
+        :displayOptions (:preferredFormat
+                         "markdown"
+                         :trimDocumentationLines :json-false
+                         :maxDocumentationLineLength 0
+                         :trimDocumentationText :json-false
+                         :maxDocumentationTextLength 0)
         :searchPaths ,(vconcat lsp-python-ms-extra-paths pysyspath)
         :analysisUpdates t
         :asyncStartup t
