@@ -190,11 +190,11 @@ The alternative is `https://pvsc.azureedge.net'."
                  "Warning"))
 
 (defcustom lsp-python-ms-extra-major-modes '()
-    "A list of additional major modes in which to activate.
+  "A list of additional major modes in which to activate.
 
-  In addition to the `python-mode', you may wish the Microsoft Python
-  Language Server to activate in other major modes.  If so, list them
-  here."
+In addition to the `python-mode', you may wish the Microsoft Python
+Language Server to activate in other major modes.  If so, list them
+here."
   :type 'list
   :group 'lsp-python-ms)
 
@@ -285,8 +285,8 @@ The alternative is `https://pvsc.azureedge.net'."
 (defun lsp-python-ms-update-server ()
   "Update Microsoft Python Language Server.
 
-  On Windows, if the server is running, the updating will fail.
-  After stopping or killing the process, retry to update."
+On Windows, if the server is running, the updating will fail.
+After stopping or killing the process, retry to update."
   (interactive)
   (lsp-python-ms--install-server nil #'ignore #'lsp--error t))
 
@@ -351,7 +351,7 @@ The alternative is `https://pvsc.azureedge.net'."
   (and path (f-executable? path) path))
 
 (defun lsp-python-ms-locate-python (&optional dir)
-  "Look for virtual environments local to the workspace"
+  "Look for virtual environments local to the workspace."
   (let* ((pyenv-python (lsp-python-ms--dominating-pyenv-python dir))
          (venv-python (lsp-python-ms--dominating-venv-python dir))
          (conda-python (lsp-python-ms--dominating-conda-python dir))
@@ -374,18 +374,18 @@ The alternative is `https://pvsc.azureedge.net'."
 (defun lsp-python-ms--get-python-ver-and-syspath (&optional workspace-root)
   "Return list with pyver-string and list of python search paths.
 
-  The WORKSPACE-ROOT will be prepended to the list of python search
-  paths and then the entire list will be json-encoded."
+The WORKSPACE-ROOT will be prepended to the list of python search
+paths and then the entire list will be json-encoded."
   (let*
       ((python (and t (lsp-python-ms-locate-python)))
        (workspace-root (and python (or workspace-root ".")))
        (default-directory (and workspace-root workspace-root))
        (init (and default-directory
                   "from __future__ import print_function; import sys; sys.path = list(filter(lambda p: p != '', sys.path)); import json;"))
-  (ver (and init "v=(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));"))
-  (sp (and ver (concat "sys.path.insert(0, '" workspace-root "'); p=sys.path;")))
-  (ex (and sp "e=sys.executable;"))
-  (val (and ex "print(json.dumps({\"version\":v,\"paths\":p,\"executable\":e}))")))
+       (ver (and init "v=(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));"))
+       (sp (and ver (concat "sys.path.insert(0, '" workspace-root "'); p=sys.path;")))
+       (ex (and sp "e=sys.executable;"))
+       (val (and ex "print(json.dumps({\"version\":v,\"paths\":p,\"executable\":e}))")))
     (when val
       (with-temp-buffer
         (call-process python nil t nil "-c"
@@ -428,7 +428,7 @@ directory"
     (when lsp-python-ms-parse-dot-env-enabled
       (lsp-python-ms--parse-dot-env workspace-root))
     (cl-destructuring-bind (pyver pysyspath pyintpath)
-      (lsp-python-ms--get-python-ver-and-syspath workspace-root)
+        (lsp-python-ms--get-python-ver-and-syspath workspace-root)
       `(:interpreter
         (:properties (
                       :InterpreterPath ,pyintpath
@@ -437,10 +437,10 @@ directory"
         ;; preferredFormat "markdown" or "plaintext"
         ;; experiment to find what works best -- over here mostly plaintext
         :displayOptions (:preferredFormat "markdown"
-                         :trimDocumentationLines :json-false
-                         :maxDocumentationLineLength 0
-                         :trimDocumentationText :json-false
-                         :maxDocumentationTextLength 0)
+                                          :trimDocumentationLines :json-false
+                                          :maxDocumentationLineLength 0
+                                          :trimDocumentationText :json-false
+                                          :maxDocumentationTextLength 0)
         :searchPaths ,(vconcat lsp-python-ms-extra-paths pysyspath)
         :analysisUpdates t
         :asyncStartup t
