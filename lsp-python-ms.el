@@ -66,13 +66,12 @@
 ;; sibling to the root of every project you visit")
 
 (defcustom lsp-python-ms-guess-env t
-  "Should the language server guess the paths
+  "Should the language server guess the paths.
 
 If true, check for pyenv environment/version files, then conda
 environment files, then project-local virtual environments, then
-fall back to the python on the head of PATH. Otherwise, just use
-the python on the head of PATH
-"
+fall back to the python on the head of PATH.  Otherwise, just use
+the python on the head of PATH."
   :type 'boolean
   :group 'lsp-python-ms)
 
@@ -94,7 +93,7 @@ names in search paths returned by the interpreter."
 (make-variable-buffer-local 'lsp-python-ms-extra-paths)
 
 (defcustom lsp-python-ms-python-executable-cmd "python"
-  "Command to specify the Python command for the Microsoft Python Language Server.
+  "Command to specify Python command for the Microsoft Python Language Server.
 
 Similar to the `python-shell-interpreter', but used only with mspyls.
 Useful when there are multiple python versions in system.
@@ -124,7 +123,7 @@ Only available in Emacs 27 and above."
 
 (defcustom lsp-python-ms-nupkg-channel "stable"
   "The channel of nupkg for the Microsoft Python Language Server:
-  stable, beta or daily."
+stable, beta or daily."
   :type 'string
   :group 'lsp-python-ms)
 
@@ -175,12 +174,13 @@ Only available in Emacs 27 and above."
   :group 'lsp-python-ms)
 
 (defcustom lsp-python-ms-base-url "https://pvsc.blob.core.windows.net"
-  "The base url to get nupkg package. The alternative is `https://pvsc.azureedge.net'."
+  "The base url to get nupkg package.
+The alternative is `https://pvsc.azureedge.net'."
   :type 'string
   :group 'lsp-python-ms)
 
 (defcustom lsp-python-ms-log-level "Error"
-  "Log Level"
+  "Log Level definition."
   :type 'string
   :group 'lsp-python-ms
   :options (list "Trace"
@@ -192,14 +192,14 @@ Only available in Emacs 27 and above."
 (defcustom lsp-python-ms-extra-major-modes '()
     "A list of additional major modes in which to activate.
 
-  In addition to the python-mode, you may wish the Microsoft Python
-  Language Server to activate in other major modes. If so, list them
+  In addition to the `python-mode', you may wish the Microsoft Python
+  Language Server to activate in other major modes.  If so, list them
   here."
   :type 'list
   :group 'lsp-python-ms)
 
 (defun lsp-python-ms-latest-nupkg-url (&optional channel)
-  "Get the nupkg url of the latest Microsoft Python Language Server."
+  "Get the nupkg url through CHANNEL from Microsoft Python Language Server."
   (let ((channel (or channel "stable")))
     (unless (member channel '("stable" "beta" "daily"))
       (user-error "Unknown channel: %s" channel))
@@ -362,7 +362,7 @@ Only available in Emacs 27 and above."
 
     (if lsp-python-ms-guess-env
         (cond ((lsp-python-ms--valid-python lsp-python-ms-python-executable))
-	          ((lsp-python-ms--valid-python venv-python))
+              ((lsp-python-ms--valid-python venv-python))
               ((lsp-python-ms--valid-python pyenv-python))
               ((lsp-python-ms--valid-python conda-python))
               ((lsp-python-ms--valid-python sys-python)))
