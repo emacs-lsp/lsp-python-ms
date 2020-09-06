@@ -93,7 +93,7 @@ names in search paths returned by the interpreter."
 (make-variable-buffer-local 'lsp-python-ms-extra-paths)
 
 (defcustom lsp-python-ms-python-executable-cmd "python"
-  "Command to specify Python command for the Microsoft Python Language Server.
+  "Command to specify the Python command for the Microsoft Python Language Server.
 
 Similar to the `python-shell-interpreter', but used only with mspyls.
 Useful when there are multiple python versions in system.
