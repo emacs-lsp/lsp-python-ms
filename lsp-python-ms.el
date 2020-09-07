@@ -66,13 +66,12 @@
 ;; sibling to the root of every project you visit")
 
 (defcustom lsp-python-ms-guess-env t
-  "Should the language server guess the paths
+  "Should the language server guess the paths.
 
 If true, check for pyenv environment/version files, then conda
 environment files, then project-local virtual environments, then
-fall back to the python on the head of PATH. Otherwise, just use
-the python on the head of PATH
-"
+fall back to the python on the head of PATH.  Otherwise, just use
+the python on the head of PATH."
   :type 'boolean
   :group 'lsp-python-ms)
 
@@ -124,7 +123,7 @@ Only available in Emacs 27 and above."
 
 (defcustom lsp-python-ms-nupkg-channel "stable"
   "The channel of nupkg for the Microsoft Python Language Server:
-  stable, beta or daily."
+stable, beta or daily."
   :type 'string
   :group 'lsp-python-ms)
 
@@ -175,12 +174,13 @@ Only available in Emacs 27 and above."
   :group 'lsp-python-ms)
 
 (defcustom lsp-python-ms-base-url "https://pvsc.blob.core.windows.net"
-  "The base url to get nupkg package. The alternative is `https://pvsc.azureedge.net'."
+  "The base url to get nupkg package.
+The alternative is `https://pvsc.azureedge.net'."
   :type 'string
   :group 'lsp-python-ms)
 
 (defcustom lsp-python-ms-log-level "Error"
-  "Log Level"
+  "Log Level definition."
   :type 'string
   :group 'lsp-python-ms
   :options (list "Trace"
@@ -190,16 +190,16 @@ Only available in Emacs 27 and above."
                  "Warning"))
 
 (defcustom lsp-python-ms-extra-major-modes '()
-    "A list of additional major modes in which to activate.
+  "A list of additional major modes in which to activate.
 
-  In addition to the python-mode, you may wish the Microsoft Python
-  Language Server to activate in other major modes. If so, list them
-  here."
+In addition to the `python-mode', you may wish the Microsoft Python
+Language Server to activate in other major modes.  If so, list them
+here."
   :type 'list
   :group 'lsp-python-ms)
 
 (defun lsp-python-ms-latest-nupkg-url (&optional channel)
-  "Get the nupkg url of the latest Microsoft Python Language Server."
+  "Get the nupkg url through CHANNEL from Microsoft Python Language Server."
   (let ((channel (or channel "stable")))
     (unless (member channel '("stable" "beta" "daily"))
       (user-error "Unknown channel: %s" channel))
@@ -285,8 +285,8 @@ Only available in Emacs 27 and above."
 (defun lsp-python-ms-update-server ()
   "Update Microsoft Python Language Server.
 
-  On Windows, if the server is running, the updating will fail.
-  After stopping or killing the process, retry to update."
+On Windows, if the server is running, the updating will fail.
+After stopping or killing the process, retry to update."
   (interactive)
   (lsp-python-ms--install-server nil #'ignore #'lsp--error t))
 
@@ -351,7 +351,7 @@ Only available in Emacs 27 and above."
   (and path (f-executable? path) path))
 
 (defun lsp-python-ms-locate-python (&optional dir)
-  "Look for virtual environments local to the workspace"
+  "Look for virtual environments local to the workspace."
   (let* ((pyenv-python (lsp-python-ms--dominating-pyenv-python dir))
          (venv-python (lsp-python-ms--dominating-venv-python dir))
          (conda-python (lsp-python-ms--dominating-conda-python dir))
@@ -362,7 +362,7 @@ Only available in Emacs 27 and above."
 
     (if lsp-python-ms-guess-env
         (cond ((lsp-python-ms--valid-python lsp-python-ms-python-executable))
-	          ((lsp-python-ms--valid-python venv-python))
+              ((lsp-python-ms--valid-python venv-python))
               ((lsp-python-ms--valid-python pyenv-python))
               ((lsp-python-ms--valid-python conda-python))
               ((lsp-python-ms--valid-python sys-python)))
@@ -374,18 +374,17 @@ Only available in Emacs 27 and above."
 (defun lsp-python-ms--get-python-ver-and-syspath (&optional workspace-root)
   "Return list with pyver-string and list of python search paths.
 
-  The WORKSPACE-ROOT will be prepended to the list of python search
-  paths and then the entire list will be json-encoded."
-  (let*
-      ((python (and t (lsp-python-ms-locate-python)))
-       (workspace-root (and python (or workspace-root ".")))
-       (default-directory (and workspace-root workspace-root))
-       (init (and default-directory
-                  "from __future__ import print_function; import sys; sys.path = list(filter(lambda p: p != '', sys.path)); import json;"))
-  (ver (and init "v=(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));"))
-  (sp (and ver (concat "sys.path.insert(0, '" workspace-root "'); p=sys.path;")))
-  (ex (and sp "e=sys.executable;"))
-  (val (and ex "print(json.dumps({\"version\":v,\"paths\":p,\"executable\":e}))")))
+The WORKSPACE-ROOT will be prepended to the list of python search
+paths and then the entire list will be json-encoded."
+  (let* ((python (and t (lsp-python-ms-locate-python)))
+         (workspace-root (and python (or workspace-root ".")))
+         (default-directory (and workspace-root workspace-root))
+         (init (and default-directory
+                    "from __future__ import print_function; import sys; sys.path = list(filter(lambda p: p != '', sys.path)); import json;"))
+         (ver (and init "v=(\"%s.%s\" % (sys.version_info[0], sys.version_info[1]));"))
+         (sp (and ver (concat "sys.path.insert(0, '" workspace-root "'); p=sys.path;")))
+         (ex (and sp "e=sys.executable;"))
+         (val (and ex "print(json.dumps({\"version\":v,\"paths\":p,\"executable\":e}))")))
     (when val
       (with-temp-buffer
         (call-process python nil t nil "-c"
@@ -428,15 +427,14 @@ directory"
     (when lsp-python-ms-parse-dot-env-enabled
       (lsp-python-ms--parse-dot-env workspace-root))
     (cl-destructuring-bind (pyver pysyspath pyintpath)
-      (lsp-python-ms--get-python-ver-and-syspath workspace-root)
+        (lsp-python-ms--get-python-ver-and-syspath workspace-root)
       `(:interpreter
-        (:properties (
-                      :InterpreterPath ,pyintpath
-                      :UseDefaultDatabase t
-                      :Version ,pyver))
+        (:properties
+         (:InterpreterPath ,pyintpath :UseDefaultDatabase t :Version ,pyver))
         ;; preferredFormat "markdown" or "plaintext"
         ;; experiment to find what works best -- over here mostly plaintext
-        :displayOptions (:preferredFormat "markdown"
+        :displayOptions (:preferredFormat
+                         "markdown"
                          :trimDocumentationLines :json-false
                          :maxDocumentationLineLength 0
                          :trimDocumentationText :json-false
