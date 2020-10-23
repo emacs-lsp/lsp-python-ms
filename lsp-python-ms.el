@@ -304,10 +304,9 @@ After stopping or killing the process, retry to update."
                             ((f-executable? python3?) python3?)
                             (t nil))))
          (not-system (and python
-                          (not (or (string-equal (f-parent (f-parent (f-parent python)))
-                                                 (expand-file-name "~"))
-                                   (string-equal (f-parent (f-parent (f-parent python)))
-                                                 "/"))))))
+                          (let ((dir-parent (f-parent dir)))
+                            (not (or (string-equal dir-parent (expand-file-name "~"))
+                                     (string-equal dir-parent "/")))))))
     (and not-system python)))
 
 (defun lsp-python-ms--dominating-venv-python (&optional dir)
