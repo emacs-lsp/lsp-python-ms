@@ -23,7 +23,6 @@
 
 (require 'package)
 
-
 (setq user-emacs-directory (expand-file-name (make-temp-name ".emacs.d")
                                              "~")
       package-user-dir (expand-file-name (make-temp-name "tmp-elpa")
@@ -31,7 +30,7 @@
 
 (let* ((package-archives '(("melpa" . "https://melpa.org/packages/")
                            ("gnu" . "https://elpa.gnu.org/packages/")))
-       (pkgs '(dash dash-functional f lv ht spinner markdown-mode deferred)))
+       (pkgs '(lsp-mode projectile)))
   (package-initialize)
   (package-refresh-contents)
 
