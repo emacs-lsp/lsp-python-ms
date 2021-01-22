@@ -37,8 +37,8 @@ jobs:
     - name: build
       run: 'cask build'
 
-    - name: package
-      run: 'cask package'
+    #- name: package
+    #  run: 'cask package'
 
   windows-build:
     runs-on: windows-latest
