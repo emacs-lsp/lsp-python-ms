@@ -40,7 +40,6 @@ jobs:
     - name: package
       run: 'cask package'
 
-jobs:
   windows-build:
     runs-on: windows-latest
     strategy:
