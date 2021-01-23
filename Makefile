@@ -1,5 +1,9 @@
 SHELL := /usr/bin/env bash
 
+EMACS ?= emacs
+CASK ?= cask
+
+windows-ci: CASK=
 windows-ci: clean windows-compile
 
 windows-compile:
@@ -7,7 +11,7 @@ windows-compile:
 	@$(CASK) $(EMACS) -Q --batch \
 		-l test/windows-bootstrap.el \
 		-L . \
-		--eval '(setq byte-compile-error-on-warn t)' \
+		--eval '(setq byte-compile-error-on-warn nil)' \
 		-f batch-byte-compile *.el
 
 clean:
