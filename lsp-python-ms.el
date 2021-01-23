@@ -359,7 +359,9 @@ After stopping or killing the process, retry to update."
          (conda-python (lsp-python-ms--dominating-conda-python dir))
          (sys-python (if (>= emacs-major-version 27)
                          (executable-find lsp-python-ms-python-executable-cmd lsp-python-ms-prefer-remote-env)
-                       (executable-find lsp-python-ms-python-executable-cmd))))
+                       ;; This complains in Emacs 26.1, see #141
+                       (with-no-warnings
+                         (executable-find lsp-python-ms-python-executable-cmd)))))
     ;; pythons by preference: local pyenv version, local conda version
 
     (if lsp-python-ms-guess-env
