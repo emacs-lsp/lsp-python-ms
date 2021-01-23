@@ -30,7 +30,7 @@
 
 (let* ((package-archives '(("melpa" . "https://melpa.org/packages/")
                            ("gnu" . "https://elpa.gnu.org/packages/")))
-       (pkgs '(lsp-mode projectile)))
+       (pkgs '(lsp-mode projectile project)))
   (package-initialize)
   (package-refresh-contents)
 
