@@ -1,5 +1,9 @@
 SHELL := /usr/bin/env bash
 
+EMACS ?= emacs
+CASK ?= cask
+
+windows-ci: CASK=
 windows-ci: clean windows-compile
 
 windows-compile:
