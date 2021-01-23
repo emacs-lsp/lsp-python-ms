@@ -15,6 +15,6 @@ windows-compile:
 		-f batch-byte-compile *.el
 
 clean:
-rm -rf .cask *.elc
+	rm -rf .cask *.elc
 
 .PHONY: clean windows-compile
