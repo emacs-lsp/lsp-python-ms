@@ -411,7 +411,7 @@ or projectile, or just return `default-directory'."
    ((fboundp #'ffip-get-project-root-directory) (ffip-get-project-root-directory))
    ((fboundp #'projectile-project-root) (projectile-project-root))
    ((fboundp #'project-current) (when-let ((project (project-current)))
-                                  (car (project-roots project))))
+                                  (car (project-root project))))
    (t default-directory)))
 
 ;; I based most of this on the vs.code implementation:
