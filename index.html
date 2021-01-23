@@ -1,6 +1,4 @@
 
-
-
 <!doctype html>
 <html lang="en" class="no-js">
   <head>
@@ -10,8 +8,9 @@
       
       
       
+      
       <link rel="shortcut icon" href="images/logo.png">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.5.12">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-6.2.4">
     
     
       
@@ -19,14 +18,18 @@
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.4dd2dd8d.min.css">
+      <link rel="stylesheet" href="assets/stylesheets/main.15aa0b43.min.css">
       
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.75751829.min.css">
+        
       
     
     
     
       
-        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
         <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
       
@@ -42,7 +45,13 @@
   </head>
   
   
-    <body dir="ltr">
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+      
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -60,7 +69,9 @@
       
     </div>
     
-      <header class="md-header" data-md-component="header">
+      
+
+<header class="md-header" data-md-component="header">
   <nav class="md-header-nav md-grid" aria-label="Header">
     <a href="." title="LSP Python MS" class="md-header-nav__button md-logo" aria-label="LSP Python MS">
       
@@ -71,18 +82,20 @@
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
     </label>
     <div class="md-header-nav__title" data-md-component="header-title">
-      
-        <div class="md-header-nav__ellipsis">
-          <span class="md-header-nav__topic md-ellipsis">
+      <div class="md-header-nav__ellipsis">
+        <div class="md-header-nav__topic">
+          <span class="md-ellipsis">
             LSP Python MS
           </span>
-          <span class="md-header-nav__topic md-ellipsis">
+        </div>
+        <div class="md-header-nav__topic">
+          <span class="md-ellipsis">
             
               Home
             
           </span>
         </div>
-      
+      </div>
     </div>
     
       <label class="md-header-nav__button md-icon" for="__search">
@@ -93,7 +106,7 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
       <label class="md-search__icon md-icon" for="__search">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
@@ -134,8 +147,6 @@
     
     <div class="md-container" data-md-component="container">
       
-        
-      
       
         
       
@@ -143,10 +154,16 @@
         <div class="md-main__inner md-grid">
           
             
-              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation" >
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
-                    <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+                    
+
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
     <a href="." title="LSP Python MS" class="md-nav__button md-logo" aria-label="LSP Python MS">
       
@@ -175,6 +192,7 @@
       
       
 
+
   
 
 
@@ -190,7 +208,7 @@
         <span class="md-nav__icon md-icon"></span>
       </label>
     
-    <a href="." title="Home" class="md-nav__link md-nav__link--active">
+    <a href="." class="md-nav__link md-nav__link--active">
       Home
     </a>
     
@@ -248,7 +266,8 @@
               </div>
             
             
-              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc" >
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -308,9 +327,6 @@
                   </a>
                 
                 
-                  
-                
-                
                 <p><a href="https://github.com/emacs-lsp/lsp-python-ms/actions"><a href="https://github.com/emacs-lsp/lsp-python-ms/workflows/CI/badge.svg?branch=master">https://github.com/emacs-lsp/lsp-python-ms/workflows/CI/badge.svg?branch=master</a></a>
 <a href="https://melpa.org/#/lsp-python-ms"><img alt="" src="https://melpa.org/packages/lsp-python-ms-badge.svg" /></a>
 <a href="https://stable.melpa.org/#/lsp-python-ms"><img alt="" src="https://stable.melpa.org/packages/lsp-python-ms-badge.svg" /></a>
@@ -323,7 +339,6 @@
 (setq lsp-python-ms-auto-install-server t)
 (add-hook &#39;python-mode-hook #&#39;lsp) ; or lsp-deferred
 </code></pre></div>
-
 <p>A minimal <code>use-package</code> initialization might be:</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">use-package</span> <span class="nv">lsp-python-ms</span>
   <span class="nb">:ensure</span> <span class="no">t</span>
@@ -332,7 +347,6 @@
                           <span class="p">(</span><span class="nb">require</span> <span class="ss">&#39;lsp-python-ms</span><span class="p">)</span>
                           <span class="p">(</span><span class="nv">lsp</span><span class="p">))))</span>  <span class="c1">; or lsp-deferred</span>
 </code></pre></div>
-
 <h2 id="installing-the-executable">Installing the executable<a class="headerlink" href="#installing-the-executable" title="Permanent link">#</a></h2>
 <h3 id="nixos">NixOS<a class="headerlink" href="#nixos" title="Permanent link">#</a></h3>
 <p>Building the executable manually is difficult on NixOS, but it can be
@@ -342,7 +356,6 @@ the unstable branch.</p>
 <div class="highlight"><pre><span></span><code>nix-channel --add https://nixos.org/channels/nixos-unstable nixos
 nix-channel --update nixos
 </code></pre></div>
-
 <p>You can then install the executable by running <code>nix-env -iA
 nixpkgs.python-language-server</code> or by adding
 <code>nixpkgs.python-language-server</code> to your <code>configuration.nix</code> and
@@ -359,7 +372,6 @@ server, not Microsoft's.</p>
   <span class="nb">:init</span>
   <span class="p">(</span><span class="k">setq</span> <span class="nv">lsp-python-ms-executable</span> <span class="p">(</span><span class="nv">executable-find</span> <span class="s">&quot;python-language-server&quot;</span><span class="p">)))</span>
 </code></pre></div>
-
 <h3 id="most-other-distros">Most other distros<a class="headerlink" href="#most-other-distros" title="Permanent link">#</a></h3>
 <p>Normally the
 <a href="https://github.com/Microsoft/python-language-server">python-language-server</a>
@@ -378,7 +390,6 @@ server yourselves.</p>
 <span class="nb">cd</span> python-language-server/src/LanguageServer/Impl
 dotnet publish -c Release -r osx-x64   <span class="c1"># mac</span>
 </code></pre></div>
-
 <p>Change the <code>-r</code> flag according to your architecture and operating
 system. See Microsoft's <a href="https://docs.microsoft.com/en-us/dotnet/core/rid-catalog">Runtime ID
 Catalog</a>
@@ -386,7 +397,6 @@ for the right value for your system.</p>
 <p>Then make the binary executable.</p>
 <div class="highlight"><pre><span></span><code>chmod a+x <span class="k">$(</span>git rev-parse --show-toplevel<span class="k">)</span>/output/bin/Release/osx-x64/publish/Microsoft.Python.LanguageServer
 </code></pre></div>
-
 <p>NOTE: on some systems (for example, Fedora), the executable comes
 out as <code>Microsoft.Python.LanguageServer.LanguageServer</code>.</p>
 </li>
@@ -396,7 +406,6 @@ out as <code>Microsoft.Python.LanguageServer.LanguageServer</code>.</p>
 <span class="p">(</span><span class="k">setq</span> <span class="nv">lsp-python-ms-executable</span>
       <span class="s">&quot;~/python-language-server/output/bin/Release/osx-x64/publish/Microsoft.Python.LanguageServer&quot;</span><span class="p">)</span>
 </code></pre></div>
-
 </li>
 </ol>
 <p>For development, you might find it useful to run <code>cask install</code>.</p>
@@ -429,13 +438,11 @@ project/workspace being loaded.</p>
       (require &#39;lsp-python-ms)
       (lsp)))) ; or lsp-deferred
 </code></pre></div>
-
 <p>Second, create `.dir-locals.el` file in the root directory of
 project to specify the varibale <code>lsp-python-ms-python-executable</code>
 for the project/workspace.</p>
 <div class="highlight"><pre><span></span><code>((python-mode . ((lsp-python-ms-python-executable . &quot;/.../bin/python&quot;))))
 </code></pre></div>
-
 </li>
 </ol>
 <h1 id="credit">Credit<a class="headerlink" href="#credit" title="Permanent link">#</a></h1>
@@ -450,7 +457,7 @@ This just tidies and packages his work there.</p>
 <div class="md-source-date">
   <small>
     
-      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">September 17, 2020</span>
+      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 23, 2021</span>
     
   </small>
 </div>
@@ -517,15 +524,15 @@ This just tidies and packages his work there.</p>
       
     </div>
     
-      <script src="assets/javascripts/vendor.3636a4ec.min.js"></script>
-      <script src="assets/javascripts/bundle.e9fe3281.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      <script src="assets/javascripts/vendor.93c04032.min.js"></script>
+      <script src="assets/javascripts/bundle.83e5331e.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
       
       <script>
         app = initialize({
           base: ".",
           features: [],
           search: Object.assign({
-            worker: "assets/javascripts/worker/search.5eca75d3.min.js"
+            worker: "assets/javascripts/worker/search.8c7e0a7e.min.js"
           }, typeof search !== "undefined" && search)
         })
       </script>
