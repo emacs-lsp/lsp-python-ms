@@ -411,8 +411,8 @@ or projectile, or just return `default-directory'."
    ((fboundp #'lsp-workspace-root) (lsp-workspace-root))
    ((fboundp #'ffip-get-project-root-directory) (ffip-get-project-root-directory))
    ((fboundp #'projectile-project-root) (projectile-project-root))
-   ((and (fboundp #'project-current) (fboundp #'project-root))
-    (when-let ((project (project-current))) (car (project-root project))))
+   ((fboundp #'project-current) (when-let ((project (project-current)))
+                                  (car (project-root project))))
    (t default-directory)))
 
 ;; I based most of this on the vs.code implementation:
