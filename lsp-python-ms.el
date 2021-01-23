@@ -35,6 +35,7 @@
 (require 'json)
 (require 'lsp-mode)
 (require 'projectile nil 'noerror)
+(require 'project nil 'noerror)
 
 
 ;; Forward declare functions
