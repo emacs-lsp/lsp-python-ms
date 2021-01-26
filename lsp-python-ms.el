@@ -69,10 +69,10 @@
 (defcustom lsp-python-ms-guess-env t
   "Should the language server guess the paths.
 
-If true, check for pyenv environment/version files, then conda
-environment files, then project-local virtual environments, then
-fall back to the python on the head of PATH.  Otherwise, just use
-the python on the head of PATH."
+If true, check for a pyvenv.el environment, then pyenv environment/
+version files, then conda environment files, then project-local
+virtual environments, then fall back to the python on the head of
+PATH. Otherwise, just use the python on the head of PATH."
   :type 'boolean
   :group 'lsp-python-ms)
 
@@ -296,30 +296,41 @@ After stopping or killing the process, retry to update."
   (let ((dirs (and dir (f-directories dir))))
     (car (seq-filter #'lsp-python-ms--venv-python dirs))))
 
+
 (defun lsp-python-ms--venv-python (dir)
   "Check if a directory is a virtualenv."
-  (let* ((python? (and t (f-expand "bin/python" dir)))
-         (python3? (and python? (f-expand "bin/python3" dir)))
-         (python (and python3?
-                      (cond ((f-executable? python?) python?)
-                            ((f-executable? python3?) python3?)
-                            (t nil))))
-         (not-system (and python
-                          (let ((dir-parent (f-parent dir)))
-                            (not (or (string-equal dir-parent (expand-file-name "~"))
-                                     (string-equal dir-parent "/")))))))
-    (and not-system python)))
+  (if (eq system-type 'windows-nt)
+      ;; On windows, find the first valid python exe
+      (seq-find #'f-executable? (list (f-expand "Scripts/python3.exe" dir)
+                                      (f-expand "bin/python3.exe" dir)
+                                      (f-expand "Scripts/python.exe" dir)
+                                      (f-expand "bin/python.exe" dir)
+                                      (f-expand "python.exe" dir)))
+    (let* ((python? (and t (f-expand "bin/python" dir)))
+           (python3? (and python? (f-expand "bin/python3" dir)))
+           (python (and python3?
+                        (cond ((f-executable? python?) python?)
+                              ((f-executable? python3?) python3?)
+                              (t nil))))
+           (not-system (and python
+                            (let ((dir-parent (f-parent dir)))
+                              (not (or (string-equal dir-parent (expand-file-name "~"))
+                                       (string-equal dir-parent "/")))))))
+      (and not-system python))))
 
 (defun lsp-python-ms--dominating-venv-python (&optional dir)
-  "Look for directories that look like venvs."
-  (when-let ((dominating-venv
-              (or (locate-dominating-file (or dir default-directory) #'lsp-python-ms--venv-python)
-                  (lsp-python-ms--venv-dir (locate-dominating-file (or dir default-directory) #'lsp-python-ms--venv-dir)))))
-    (lsp-python-ms--venv-python dominating-venv)))
+    "Look for directories that look like venvs."
+    (when-let ((dominating-venv (locate-dominating-file (or dir (lsp-python-ms--workspace-root))
+                                                        #'lsp-python-ms--venv-dir)))
+      (lsp-python-ms--venv-python (lsp-python-ms--venv-dir dominating-venv))))
+
+(defun lsp-python-ms--pyvenv-python ()
+  "Get current pyvenv.el environment."
+  (and (boundp 'pyvenv-virtual-env) (lsp-python-ms--venv-python pyvenv-virtual-env)))
 
 (defun lsp-python-ms--dominating-conda-python (&optional dir)
   "Locate dominating conda environment."
-  (let* ((path (or dir default-directory))
+  (let* ((path (or dir (lsp-python-ms--workspace-root)))
          (yamls (and path
                      '("environment.yml" "environment.yaml"
                        "env.yml" "env.yaml" "dev-environment.yml"
@@ -345,7 +356,7 @@ After stopping or killing the process, retry to update."
 
 (defun lsp-python-ms--dominating-pyenv-python (&optional dir)
   "Locate dominating pyenv-managed python."
-  (let ((dir (or dir default-directory)))
+  (let ((dir (or dir (lsp-python-ms--workspace-root))))
     (when (locate-dominating-file dir ".python-version")
       (string-trim (shell-command-to-string "pyenv which python")))))
 
@@ -354,22 +365,19 @@ After stopping or killing the process, retry to update."
 
 (defun lsp-python-ms-locate-python (&optional dir)
   "Look for virtual environments local to the workspace."
-  (let* ((pyenv-python (lsp-python-ms--dominating-pyenv-python dir))
-         (venv-python (lsp-python-ms--dominating-venv-python dir))
-         (conda-python (lsp-python-ms--dominating-conda-python dir))
-         (sys-python (if (>= emacs-major-version 27)
+  (let* ((sys-python (if (>= emacs-major-version 27)
                          (executable-find lsp-python-ms-python-executable-cmd lsp-python-ms-prefer-remote-env)
                        ;; This complains in Windows' Emacs 26.1, see #141
                        (executable-find lsp-python-ms-python-executable-cmd))))
-    ;; pythons by preference: local pyenv version, local conda version
-
+    ;; pythons by preference: explicit executable, pyvenv.el environment, local pyenv version, local conda version, local venv
     (if lsp-python-ms-guess-env
-        (cond ((lsp-python-ms--valid-python lsp-python-ms-python-executable))
-              ((lsp-python-ms--valid-python venv-python))
-              ((lsp-python-ms--valid-python pyenv-python))
-              ((lsp-python-ms--valid-python conda-python))
-              ((lsp-python-ms--valid-python sys-python)))
-      (cond ((lsp-python-ms--valid-python sys-python))))))
+        (or (lsp-python-ms--valid-python lsp-python-ms-python-executable)
+            (lsp-python-ms--valid-python (lsp-python-ms--pyvenv-python))
+            (lsp-python-ms--valid-python (lsp-python-ms--dominating-pyenv-python dir))
+            (lsp-python-ms--valid-python (lsp-python-ms--dominating-conda-python dir))
+            (lsp-python-ms--valid-python (lsp-python-ms--dominating-venv-python dir))
+            (lsp-python-ms--valid-python sys-python))
+      (lsp-python-ms--valid-python sys-python))))
 
 ;; it's crucial that we send the correct Python version to MS PYLS,
 ;; else it returns no docs in many cases furthermore, we send the
