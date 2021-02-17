@@ -11,7 +11,7 @@ windows-compile:
 	@$(CASK) $(EMACS) -Q --batch \
 		-l test/windows-bootstrap.el \
 		-L . \
-		--eval '(setq byte-compile-error-on-warn nil)' \
+		--eval '(setq byte-compile-error-on-warn t)' \
 		-f batch-byte-compile *.el
 
 clean:
