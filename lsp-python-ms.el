@@ -357,10 +357,12 @@ After stopping or killing the process, retry to update."
   (let* ((pyenv-python (lsp-python-ms--dominating-pyenv-python dir))
          (venv-python (lsp-python-ms--dominating-venv-python dir))
          (conda-python (lsp-python-ms--dominating-conda-python dir))
-         (sys-python (if (>= emacs-major-version 27)
-                         (executable-find lsp-python-ms-python-executable-cmd lsp-python-ms-prefer-remote-env)
-                       ;; This complains in Windows' Emacs 26.1, see #141
-                       (executable-find lsp-python-ms-python-executable-cmd))))
+         (sys-python
+          (with-no-warnings
+            (if (>= emacs-major-version 27)
+                (executable-find lsp-python-ms-python-executable-cmd lsp-python-ms-prefer-remote-env)
+              ;; This complains in Windows' Emacs 26.1, see #141
+              (executable-find lsp-python-ms-python-executable-cmd)))))
     ;; pythons by preference: local pyenv version, local conda version
 
     (if lsp-python-ms-guess-env
@@ -413,7 +415,10 @@ or projectile, or just return `default-directory'."
    ((fboundp #'ffip-get-project-root-directory) (ffip-get-project-root-directory))
    ((fboundp #'projectile-project-root) (projectile-project-root))
    ((fboundp #'project-current) (when-let ((project (project-current)))
-                                  (car (project-root project))))
+                                  (car (or (and (fboundp 'project-root) (project-root project))
+                                           ;; Function `project-roots' is obsolete, by having
+                                           ;; just to make compatible to older `project.el' package.
+                                           (with-no-warnings (project-roots project))))))
    (t default-directory)))
 
 ;; I based most of this on the vs.code implementation:
