@@ -416,7 +416,7 @@ or projectile, or just return `default-directory'."
    ((fboundp #'projectile-project-root) (projectile-project-root))
    ((fboundp #'project-current) (when-let ((project (project-current)))
                                   (car (or (and (fboundp 'project-root) (project-root project))
-                                           (project-roots project)))))
+                                           (with-no-warnings (project-roots project))))))
    (t default-directory)))
 
 ;; I based most of this on the vs.code implementation:
