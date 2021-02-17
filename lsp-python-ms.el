@@ -416,6 +416,8 @@ or projectile, or just return `default-directory'."
    ((fboundp #'projectile-project-root) (projectile-project-root))
    ((fboundp #'project-current) (when-let ((project (project-current)))
                                   (car (or (and (fboundp 'project-root) (project-root project))
+                                           ;; Function `project-roots' is obsolete, by having
+                                           ;; just to make compatible to older `project.el' package.
                                            (with-no-warnings (project-roots project))))))
    (t default-directory)))
 
