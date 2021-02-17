@@ -357,10 +357,12 @@ After stopping or killing the process, retry to update."
   (let* ((pyenv-python (lsp-python-ms--dominating-pyenv-python dir))
          (venv-python (lsp-python-ms--dominating-venv-python dir))
          (conda-python (lsp-python-ms--dominating-conda-python dir))
-         (sys-python (if (>= emacs-major-version 27)
-                         (executable-find lsp-python-ms-python-executable-cmd lsp-python-ms-prefer-remote-env)
-                       ;; This complains in Windows' Emacs 26.1, see #141
-                       (executable-find lsp-python-ms-python-executable-cmd))))
+         (sys-python
+          (with-no-warnings
+            (if (>= emacs-major-version 27)
+                (executable-find lsp-python-ms-python-executable-cmd lsp-python-ms-prefer-remote-env)
+              ;; This complains in Windows' Emacs 26.1, see #141
+              (executable-find lsp-python-ms-python-executable-cmd)))))
     ;; pythons by preference: local pyenv version, local conda version
 
     (if lsp-python-ms-guess-env
