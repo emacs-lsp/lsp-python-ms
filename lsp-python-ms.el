@@ -349,12 +349,19 @@ After stopping or killing the process, retry to update."
     (when (locate-dominating-file dir ".python-version")
       (string-trim (shell-command-to-string "pyenv which python")))))
 
+(defun lsp-python-ms--dominating-asdf-python (&optional dir)
+  "Locate dominating asdf-managed python"
+  (let ((dir (or dir default-directory)))
+    (when (locate-dominating-file dir ".tool-versions")
+      (string-trim (shell-command-to-string "asdf which python")))))
+
 (defun lsp-python-ms--valid-python (path)
   (and path (f-executable? path) path))
 
 (defun lsp-python-ms-locate-python (&optional dir)
   "Look for virtual environments local to the workspace."
   (let* ((pyenv-python (lsp-python-ms--dominating-pyenv-python dir))
+         (asdf-python (lsp-python-ms--dominating-asdf-python dir))
          (venv-python (lsp-python-ms--dominating-venv-python dir))
          (conda-python (lsp-python-ms--dominating-conda-python dir))
          (sys-python
@@ -368,6 +375,7 @@ After stopping or killing the process, retry to update."
     (if lsp-python-ms-guess-env
         (cond ((lsp-python-ms--valid-python lsp-python-ms-python-executable))
               ((lsp-python-ms--valid-python venv-python))
+              ((lsp-python-ms--valid-python asdf-python))
               ((lsp-python-ms--valid-python pyenv-python))
               ((lsp-python-ms--valid-python conda-python))
               ((lsp-python-ms--valid-python sys-python)))
