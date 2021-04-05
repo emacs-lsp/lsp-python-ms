@@ -439,11 +439,14 @@ Old lsp will pass in a WORKSPACE, new lsp has a global
 lsp-workspace-root function that finds the current buffer's
 workspace root.  If nothing works, default to the current file's
 directory"
-  (let ((workspace-root (if workspace (lsp--workspace-root workspace) (lsp-python-ms--workspace-root))))
+  (let ((workspace-root (or (if workspace
+                                (lsp--workspace-root workspace)
+                              (lsp-python-ms--workspace-root))
+                            default-directory)))
     (when lsp-python-ms-parse-dot-env-enabled
       (lsp-python-ms--parse-dot-env workspace-root))
     (cl-destructuring-bind (pyver pysyspath pyintpath)
-        (lsp-python-ms--get-python-ver-and-syspath workspace-root)
+      (lsp-python-ms--get-python-ver-and-syspath workspace-root)
       `(:interpreter
         (:properties
          (:InterpreterPath ,pyintpath :UseDefaultDatabase t :Version ,pyver))
