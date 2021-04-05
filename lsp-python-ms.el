@@ -419,14 +419,14 @@ Use `lsp-workspace-root', which is pressent in the \"new\"
 lsp-mode and works when there's an active session.  Next try ffip
 or projectile, or just return `default-directory'."
   (cond
-   ((fboundp #'lsp-workspace-root) (lsp-workspace-root))
-   ((fboundp #'ffip-get-project-root-directory) (ffip-get-project-root-directory))
-   ((fboundp #'projectile-project-root) (projectile-project-root))
-   ((fboundp #'project-current) (when-let ((project (project-current)))
+   ((and(fboundp #'lsp-workspace-root) (lsp-workspace-root)))
+   ((and(fboundp #'ffip-get-project-root-directory) (ffip-get-project-root-directory)))
+   ((and(fboundp #'projectile-project-root) (projectile-project-root)))
+   ((and(fboundp #'project-current) (when-let ((project (project-current)))
                                   (car (or (and (fboundp 'project-root) (project-root project))
                                            ;; Function `project-roots' is obsolete, by having
                                            ;; just to make compatible to older `project.el' package.
-                                           (with-no-warnings (project-roots project))))))
+                                           (with-no-warnings (project-roots project)))))))
    (t default-directory)))
 
 ;; I based most of this on the vs.code implementation:
