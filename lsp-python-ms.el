@@ -78,7 +78,8 @@ the python on the head of PATH."
 
 (defcustom lsp-python-ms-python-executable nil
   "Path to specify the Python executable for the Microsoft Python Language Server."
-  :type '(file :must-match t)
+  :type '(choice (const :tag "None" nil)
+                 (file :must-match t))
   :group 'lsp-python-ms)
 
 (defcustom lsp-python-ms-extra-paths []
