@@ -2,7 +2,7 @@
 
 ;; Author: Charl Botha
 ;; Maintainer: Andrew Christianson, Vincent Zhang
-;; Version: 0.7.1
+;; Version: 0.7.2
 ;; Package-Requires: ((emacs "25.1") (lsp-mode "6.1"))
 ;; Homepage: https://github.com/emacs-lsp/lsp-python-ms
 ;; Keywords: languages tools
@@ -78,8 +78,7 @@ the python on the head of PATH."
 
 (defcustom lsp-python-ms-python-executable nil
   "Path to specify the Python executable for the Microsoft Python Language Server."
-  :type '(choice (const :tag "None" nil)
-                 (file :must-match t))
+  :type '(choice (const :tag "None" nil) file)
   :group 'lsp-python-ms)
 
 (defcustom lsp-python-ms-extra-paths []
