@@ -1,7 +1,7 @@
 [[https://github.com/emacs-lsp/lsp-python-ms/actions][https://github.com/emacs-lsp/lsp-python-ms/workflows/CI/badge.svg?branch=master]]
+[[http://img.shields.io/:License-BSD3-blue.svg]]
 [[https://melpa.org/#/lsp-python-ms][https://melpa.org/packages/lsp-python-ms-badge.svg]]
 [[https://stable.melpa.org/#/lsp-python-ms][https://stable.melpa.org/packages/lsp-python-ms-badge.svg]]
-[[LICENSE][http://img.shields.io/:license-bsd3-blue.svg]]
 
 =lsp-mode= client leveraging Microsoft's [[https://github.com/Microsoft/python-language-server][python-language-server]].
 
