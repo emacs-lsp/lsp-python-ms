@@ -247,8 +247,8 @@ here."
                                ((executable-find "powershell")
                                 (format "powershell -noprofile -noninteractive \
   -nologo -ex bypass Expand-Archive -path '%s' -dest '%s'" temp-file install-dir))
-                               (t (user-error "Unable to extract '%s' to '%s'! \
-  Please check unzip, powershell or extract manually." temp-file install-dir)))))
+                               (t (lsp--info "Unable to extract '%s' to '%s'! \
+  Please extract manually." temp-file install-dir)))))
 
       (lsp--info "Downloading Microsoft Python Language Server...")
 
@@ -265,13 +265,12 @@ here."
          (lsp--info "Downloading Microsoft Python Language Server...done")
 
          ;; Extract the archive
-         (lsp--info "Extracting Microsoft Python Language Server...")
          (f-delete install-dir t)
 
          (lsp-async-start-process
           (lambda ()
             (when (f-exists? lsp-python-ms-executable)
-              (lsp--info "Extracting Microsoft Python Language Server...done")
+              (lsp--info "Extracted Microsoft Python Language Server")
               ;; Make the binary executable
               (chmod lsp-python-ms-executable #o755)
               ;; Start LSP if need
