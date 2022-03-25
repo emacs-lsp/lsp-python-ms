@@ -3,13 +3,12 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  unix-build:
-    runs-on: ${{ matrix.os }}
+  test:
+    runs-on: unbuntu-lastest
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
         emacs-version: [26.1, 26.2, 26.3, 27.1, 27.2]
         experimental: [false]
         include:
@@ -17,21 +16,24 @@ jobs:
             experimental: true
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v1
 
-    - uses: purcell/setup-emacs@master
-      with:
-        version: ${{ matrix.emacs-version }}
+      - uses: purcell/setup-emacs@master
+        with:
+          version: ${{ matrix.emacs-version }}
 
-    - uses: conao3/setup-cask@master
-      with:
-        version: 0.8.4
+      - uses: conao3/setup-cask@master
+        with:
+          version: 0.8.6
 
-    - name: install
-      run: 'cask install'
+      - name: install
+        run: 'cask install'
 
-    - name: build
-      run: 'cask build'
+      - name: test
+        run: 'cask exec ert-runner'
 
-    #- name: package
-    #  run: 'cask package'
+      - name: build
+        run: 'cask build'
+
+      - name: package
+        run: 'cask package'
