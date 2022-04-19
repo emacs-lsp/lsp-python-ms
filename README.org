@@ -5,6 +5,8 @@
 
 =lsp-mode= client leveraging Microsoft's [[https://github.com/Microsoft/python-language-server][python-language-server]].
 
+This project is marked as DEPRECATED, since [Microsoft's Python Lang Server](https://github.com/microsoft/python-language-server) has already been archived and is replaced by [pyright](https://github.com/microsoft/pyright). The successor is [lsp-pyright](https://github.com/emacs-lsp/lsp-pyright).
+
 * Installation
 
 Include ~lsp-python-ms~ in the configuration file:
